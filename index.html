@@ -74,9 +74,16 @@
                     </select>
                     <label>Número:</label>
                     <input id="ent_num_proc">
-                    <label for="opm">OPM:</label>
-                    <input id="opm" type="number" min="1" max="31" value="6">
+                    <label for="crpm">CRPM:</label>
+                    <input id="crpm" class="org" type="number" min="1" max="5" value="5">
+                    º 
+                    <label for="opm">| OPM:</label>
+                    <input id="opm" class="org" type="number" min="1" max="31" value="6">
                     º BPM <br>
+
+
+
+
                     <br>
                     <span id="escriba" style="cursor: pointer; color: rgb(14, 14, 206);" onclick="insereEscriba()">
                         &#x1F9D1;<u>Inserir Escrivão</u>
@@ -699,6 +706,7 @@
         rg_enc = document.getElementById("entrg_enc").value
         posto_enc = document.getElementById("ent_posto").value
         opm = document.getElementById("opm").value
+        crpm = document.getElementById("crpm").value
         nome = document.getElementById("entnome").value
         rg = document.getElementById("entrg").value
         cpf = document.getElementById("entcpf").value
@@ -949,7 +957,7 @@
         var doc = new jsPDF();
 
         test_maiusc = qualidade.toUpperCase()
-        cabecalho = `ESTADO DO PARANÁ\nPOLÍCIA MILITAR\n5º COMANDO REGIONAL\n ${opm}º BATALHÃO DE POLÍCIA MILITAR\n`
+        cabecalho = `ESTADO DO PARANÁ\nPOLÍCIA MILITAR\n${crpm} COMANDO REGIONAL\n ${opm}º BATALHÃO DE POLÍCIA MILITAR\n`
         termode = `TERMO DE INQUIRIÇÃO DE ${test_maiusc}`
         if (presenca == "sim") {
             intro = `Aos ${date_dia} dias do mês de ${date_mes} do ano de ${date_ano}, nesta cidade de ${cid_oitiva}, ${est_oitiva}, às ${inicgrav}, no(a) ${loc_oitiva}, onde se encontravam presentes o(a) Encarregado(a) do(a) ${nome_procedimento} nº ${num_proc} - COGER, que ao final assina, compareceu o(a) ${qualidade} a seguir qualificado(a):`
