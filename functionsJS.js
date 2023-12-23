@@ -228,49 +228,6 @@
         }
     }
 
-    // Início Funções de cor do Botao Gravar
-    function form_btnGrav_entra() {
-        var cor = document.getElementById("sbmt")
-        cor.style.background = 'rgb(248, 213, 148)'
-    }
-
-    function form_btnGrav_sai() {
-        var cor = document.getElementById("sbmt")
-        cor.style.background = 'rgb(247, 185, 72)'
-    }
-
-    function form_btnGrav_click() {
-        var cor = document.getElementById("sbmt")
-        cor.style.background = 'rgb(88, 67, 27)'
-    }
-    function form_btnGrav_clickUP() {
-        var cor = document.getElementById("sbmt")
-        cor.style.background = 'rgb(248, 213, 148)'
-
-    }
-    // Término Funções de cor do Botao Gravar
-
-    // Início Funções de cor do Botao Gerar
-    function form_btnGera_entra() {
-        var cor2 = document.getElementById("btnGera")
-        cor2.style.background = 'rgb(104, 223, 120)'
-    }
-
-    function form_btnGera_sai() {
-        var cor2 = document.getElementById("btnGera")
-        cor2.style.background = 'rgb(11, 182, 33)'
-    }
-
-    function form_btnGera_click() {
-        var cor2 = document.getElementById("btnGera")
-        cor2.style.background = 'rgb(3, 54, 9)'
-    }
-    function form_btnGera_clickUP() {
-        var cor2 = document.getElementById("btnGera")
-        cor2.style.background = 'rgb(145, 233, 157)'
-
-    }
-    // Término Funções de cor do Botao Gerar
 
     function formatar() {
         //PROCEDIMENTO DE FORMATAR A DATA 
