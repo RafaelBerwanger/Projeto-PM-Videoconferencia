@@ -243,10 +243,16 @@ function formatar() {
         }
     } else if (date_mes == 1) {
         date_mes = 'Fevereiro'
-        if (date_dia > 28) {
+        /* year % 4 == 0 && year % 100 != 0
+            Lógica para analisar se o ano é Bissexto */
+        if (date_dia > 28 && date_ano % 4 == 0 && date_ano % 100!= 0) {
+            date_mes = 'Fevereiro'
+            date_dia = '29'
+        } else {
             date_mes = 'Março'
             date_dia = '1º'
         }
+
     } else if (date_mes == 2) {
         date_mes = 'Março'
         if (date_dia > 31) {
