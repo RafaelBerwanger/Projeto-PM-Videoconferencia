@@ -79,11 +79,62 @@
                     <label>Número:</label>
                     <input id="ent_num_proc">
                     <label for="crpm">CRPM:</label>
-                    <input id="crpm" class="org" type="number" min="1" max="5" value="5">
-                    º 
+                    <!-- <input id="crpm" class="org" type="number" min="1" max="5" value="5">
+                    º  -->
+                    <select name="crpm" id="crpm">
+                        <option value="1º COMANDO REGIONAL">1º</option>
+                        <option value="2º COMANDO REGIONAL">2º</option>
+                        <option value="3º COMANDO REGIONAL">3º</option>
+                        <option value="4º COMANDO REGIONAL">4º</option>
+                        <option value="5º COMANDO REGIONAL" selected>5º</option>
+                        <option value="COMANDO DE MISSÕES ESPECIAIS">CME</option>
+                        <option value="COMANDO DO POLICIAMENTO ESPECIALIZADO">CPE</option>
+                    </select>
                     <label for="opm">| OPM:</label>
-                    <input id="opm" class="org" type="number" min="1" max="31" value="6">
-                    º BPM <br>
+                    <!-- <input id="opm" class="org" type="number" min="1" max="31" value="6">
+                    º BPM  -->
+                    <select name="opm" id="opm">
+                        <option value="1º BATALHÃO DE POLÍCIA MILITAR">1º BPM</option>
+                        <option value="2º BATALHÃO DE POLÍCIA MILITAR">2º BPM</option>
+                        <option value="3º BATALHÃO DE POLÍCIA MILITAR">3º BPM</option>
+                        <option value="4º BATALHÃO DE POLÍCIA MILITAR">4º BPM</option>
+                        <option value="5º BATALHÃO DE POLÍCIA MILITAR">5º BPM</option>
+                        <option value="6º BATALHÃO DE POLÍCIA MILITAR" selected>6º BPM</option>
+                        <option value="7º BATALHÃO DE POLÍCIA MILITAR">7º BPM</option>
+                        <option value="8º BATALHÃO DE POLÍCIA MILITAR">8º BPM</option>
+                        <option value="9º BATALHÃO DE POLÍCIA MILITAR">9º BPM</option>
+                        <option value="10º BATALHÃO DE POLÍCIA MILITAR">10º BPM</option>
+                        <option value="11º BATALHÃO DE POLÍCIA MILITAR">11º BPM</option>
+                        <option value="12º BATALHÃO DE POLÍCIA MILITAR">12º BPM</option>
+                        <option value="13º BATALHÃO DE POLÍCIA MILITAR">13º BPM</option>
+                        <option value="14º BATALHÃO DE POLÍCIA MILITAR">14º BPM</option>
+                        <option value="15º BATALHÃO DE POLÍCIA MILITAR">15º BPM</option>
+                        <option value="16º BATALHÃO DE POLÍCIA MILITAR">16º BPM</option>
+                        <option value="17º BATALHÃO DE POLÍCIA MILITAR">17º BPM</option>
+                        <option value="18º BATALHÃO DE POLÍCIA MILITAR">18º BPM</option>
+                        <option value="19º BATALHÃO DE POLÍCIA MILITAR">19º BPM</option>
+                        <option value="20º BATALHÃO DE POLÍCIA MILITAR">20º BPM</option>
+                        <option value="21º BATALHÃO DE POLÍCIA MILITAR">21º BPM</option>
+                        <option value="22º BATALHÃO DE POLÍCIA MILITAR">22º BPM</option>
+                        <option value="23º BATALHÃO DE POLÍCIA MILITAR">23º BPM</option>
+                        <option value="24º BATALHÃO DE POLÍCIA MILITAR">24º BPM</option>
+                        <option value="25º BATALHÃO DE POLÍCIA MILITAR">25º BPM</option>
+                        <option value="26º BATALHÃO DE POLÍCIA MILITAR">26º BPM</option>
+                        <option value="27º BATALHÃO DE POLÍCIA MILITAR">27º BPM</option>
+                        <option value="28º BATALHÃO DE POLÍCIA MILITAR">28º BPM</option>
+                        <option value="29º BATALHÃO DE POLÍCIA MILITAR">29º BPM</option>
+                        <option value="30º BATALHÃO DE POLÍCIA MILITAR">30º BPM</option>
+                        <option value="31º BATALHÃO DE POLÍCIA MILITAR">31º BPM</option>
+                        <option value="BATALHÃO DE POLÍCIA DE FRONTEIRA">BPFRON</option>
+                        <option value="BATALHÃO DE RONDAS OSTENSIVAS DE NATUREZA ESPECIAL">BPRONE</option>
+                        <option value="BATALHÃO DE POLÍCIA DE CHOQUE">BPCHOQUE</option>
+                        <option value="BATALHÃO DE POLÍCIA RODOVIÁRIA">BPRv</option>
+                        <option value="BATALHÃO DE PATRULHA ESCOLAR COMUNITÁRIA">BPEC</option>
+                        <option value="BATALHÃO DE POLÍCIA MILITAR DE OPERAÇÕES AÉREAS">BPMOA</option>
+
+                    </select>
+
+                    <br>
 
                     <br>
                     <span id="escriba" style="cursor: pointer; color: rgb(14, 14, 206);" onclick="insereEscriba()">
