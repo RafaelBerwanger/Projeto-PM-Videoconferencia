@@ -46,14 +46,15 @@ function aplicarMascaraTelefone() {
 }
 
 //Função Máscara de CPF
-function aplicarMascaraCPF() {
-    var cpf = document.getElementById("entcpf").value;
-    cpf = cpf.replace(/\D/g, "");
-    cpf = cpf.replace(/(\d{3})(\d)/, "$1.$2");
-    cpf = cpf.replace(/(\d{3})(\d)/, "$1.$2");
-    cpf = cpf.replace(/(\d{3})(\d{1,2})/, "$1-$2");
-    document.getElementById("entcpf").value = cpf;
+function aplicarMascaraCPF(input) {
+    var cpf = input.value;
+    cpf = cpf.replace(/\D/g, "");                    // Remove todos os caracteres não numéricos
+    cpf = cpf.replace(/(\d{3})(\d)/, "$1.$2");       // Adiciona o primeiro ponto
+    cpf = cpf.replace(/(\d{3})(\d)/, "$1.$2");       // Adiciona o segundo ponto
+    cpf = cpf.replace(/(\d{3})(\d{1,2})/, "$1-$2");  // Adiciona o traço
+    input.value = cpf;
 }
+
 
 //Função para pegar a idade a partir do campo de nascimento
 function pegaidade() {
@@ -184,7 +185,7 @@ function geraprevia() {
 function limpaDados() {
     document.getElementById("entnome").value = "";
     document.getElementById("entrg").value = "";
-    document.getElementById("entcpf").value = "";
+    document.getElementById("entcin").value = "";
     document.getElementById("entnasc").value = "";
     document.getElementById("entidade").value = "";
     document.getElementById("entmae").value = "";
@@ -220,7 +221,7 @@ function insereEscriba() {
         _display.style.display = "block";
     } else if (_display.style.display == "block") {
         nome_esc = document.getElementById("entnome_esc").value = null
-        rg_esc = document.getElementById("entrg_esc").value = null
+        cin_esc = document.getElementById("entcin_esc").value = null
         posto_esc = document.getElementById("ent_posto_esc").value = null
         _display.style.display = "none";
     }
@@ -343,13 +344,13 @@ function inc_alt() {
 function sbmt1() {
 
     nome_enc = document.getElementById("entnome_enc").value
-    rg_enc = document.getElementById("entrg_enc").value
+    cni_enc = document.getElementById("entcni_enc").value
     posto_enc = document.getElementById("ent_posto").value
     opm = document.getElementById("opm").value
     crpm = document.getElementById("crpm").value
     nome = document.getElementById("entnome").value
-    rg = document.getElementById("entrg").value
-    cpf = document.getElementById("entcpf").value
+    /* rg_depo = document.getElementById("entrg").value */
+    cin_dep = document.getElementById("entcin").value
     nasc = document.getElementById("entnasc").value
     formattedDate = moment(nasc).format("DD/MM/YYYY")
     idad = document.getElementById("entidade").value
@@ -378,7 +379,7 @@ function sbmt1() {
 
     //Dados do Escriba (se houver)
     nome_esc = document.getElementById("entnome_esc").value
-    rg_esc = document.getElementById("entrg_esc").value
+    cin_esc = document.getElementById("entcin_esc").value
     posto_esc = document.getElementById("ent_posto_esc").value
 
     min = document.getElementById("min").value
@@ -620,12 +621,16 @@ function conf() {
     //linha vertical da tabela (esquerda)
     doc.line(200, 175, 200, 105)
     //linha vertical da tabela (direita)
-    doc.line(90, 125, 90, 135)
+
+    //doc.line(90, 125, 90, 135)
     //linha vertical da tabela (linha do CPF)
-    doc.line(140, 125, 140, 135)
+
+    doc.line(120, 125, 120, 135)
     //linha vertical da tabela (linha do Nasc)
-    doc.line(178, 125, 178, 135)
+
+    doc.line(168, 125, 168, 135)
     //linha vertical da tabela (linha do idade)
+
     doc.line(120, 135, 120, 145)
     //linha vertical da tabela (linha do Telefone Profissao)
     doc.line(120, 145, 120, 155)
@@ -637,16 +642,17 @@ function conf() {
     doc.text(nome, 52, 110)
     doc.line(20, 115, 200, 115)
     doc.text('Filiação', 25, 120)
-    doc.text(`${mae} ; ${pai}`, 52, 120)
+    doc.text(`${mae} e ${pai}`, 52, 120)
     doc.line(20, 125, 200, 125)
-    doc.text('RG', 25, 130)
-    doc.text(rg, 52, 130)
-    doc.text('CPF', 92, 130)
-    doc.text(cpf, 104, 130)
-    doc.text('Nasc.', 142, 130)
-    doc.text(formattedDate, 155, 130)
-    doc.text('Id:', 180, 130)
-    doc.text(idad, 190, 130)
+    /*     doc.text('RG', 25, 130)
+        doc.text(rg_depo, 52, 130) */
+    doc.text('CIN', 25, 130)
+    doc.text(cin_dep, 52, 130)
+
+    doc.text('Nascimento:', 122, 130)
+    doc.text(formattedDate, 145, 130)
+    doc.text('Idade:', 170, 130)
+    doc.text(idad + " anos", 182, 130)
     doc.line(20, 135, 200, 135)
     doc.text('Telefone', 25, 140)
     doc.text(telefone, 52, 140)
@@ -705,14 +711,14 @@ function conf() {
     up += doc.getLineHeight();
 
     if (presenca === "sim") {
-        nomeTest = `${nome}, ${rg} (${qualidade})`
+        nomeTest = `${nome}, ${cin_dep}, (${qualidade})`
     } else if (presenca === "nao") {
-        nomeTest = `${nome}, ${rg} (${qualidade} - ASSINATURA DISPENSADA)`
+        nomeTest = `${nome}, ${cin_dep}, (${qualidade} - ASSINATURA DISPENSADA)`
     }
 
     if (nome_esc) {
-        encarregado = `${posto_enc} ${nome_enc}, ${rg_enc} (Encarregado)`
-        escriba = `${posto_esc} ${nome_esc}, ${rg_esc} (Escrivão)`
+        encarregado = `${posto_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
+        escriba = `${posto_esc} ${nome_esc}, ${cin_esc} (Escrivão)`
         doc.text(encarregado, 70, 260, {
             maxWidth: 80,
             align: 'center'
@@ -727,7 +733,7 @@ function conf() {
             align: 'center'
         })
     } else {
-        encarregado = `${posto_enc} ${nome_enc}, ${rg_enc} (Encarregado)`
+        encarregado = `${posto_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
         doc.text(encarregado, 70, 280, {
             maxWidth: 80,
             align: 'center'
@@ -766,13 +772,17 @@ function conf() {
     //linha vertical da tabela (meio)
     doc.line(20, 175, 20, 105)
     //linha vertical da tabela (esquerda)
+
     doc.line(200, 175, 200, 105)
     //linha vertical da tabela (direita)
-    doc.line(90, 125, 90, 135)
+
+    // doc.line(90, 125, 90, 135)
     //linha vertical da tabela (linha do CPF)
-    doc.line(140, 125, 140, 135)
+
+    doc.line(120, 125, 120, 135)
     //linha vertical da tabela (linha do Nasc)
-    doc.line(178, 125, 178, 135)
+
+    doc.line(168, 125, 168, 135)
     //linha vertical da tabela (linha do idade)
     doc.line(120, 135, 120, 145)
     //linha vertical da tabela (linha do Telefone Profissao)
@@ -787,14 +797,14 @@ function conf() {
     doc.text('Filiação', 25, 120)
     doc.text(`${mae} e ${pai}`, 52, 120)
     doc.line(20, 125, 200, 125)
-    doc.text('RG', 25, 130)
-    doc.text(rg, 52, 130)
-    doc.text('CPF', 92, 130)
-    doc.text(cpf, 104, 130)
-    doc.text('Nasc.', 142, 130)
-    doc.text(formattedDate, 155, 130)
-    doc.text('Id:', 180, 130)
-    doc.text(idad, 190, 130)
+    /*     doc.text('RG', 25, 130)
+        doc.text(rg_depo, 52, 130) */
+    doc.text('CIN', 25, 130)
+    doc.text(cin_dep, 52, 130)
+    doc.text('Nascimento:', 122, 130)
+    doc.text(formattedDate, 145, 130)
+    doc.text('Idade:', 170, 130)
+    doc.text(idad + " anos", 182, 130)
     doc.line(20, 135, 200, 135)
     doc.text('Telefone', 25, 140)
     doc.text(telefone, 52, 140)
@@ -852,14 +862,14 @@ function conf() {
     up += doc.getLineHeight();
 
     if (presenca === "sim") {
-        nomeTest = `${nome}, ${rg} (${qualidade})`
+        nomeTest = `${nome}, ${cin_dep}, (${qualidade})`
     } else if (presenca === "nao") {
-        nomeTest = `${nome}, ${rg} (${qualidade} - ASSINATURA DISPENSADA)`
+        nomeTest = `${nome}, ${cin_dep}, (${qualidade} - ASSINATURA DISPENSADA)`
     }
 
     if (nome_esc) {
-        encarregado = `${posto_enc} ${nome_enc}, ${rg_enc} (Encarregado)`
-        escriba = `${posto_esc} ${nome_esc}, ${rg_esc} (Escrivão)`
+        encarregado = `${posto_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
+        escriba = `${posto_esc} ${nome_esc}, ${cin_esc} (Escrivão)`
         doc.text(70, 260, encarregado, {
             maxWidth: 80,
             align: 'center'
@@ -874,7 +884,7 @@ function conf() {
             align: 'center'
         })
     } else {
-        encarregado = `${posto_enc} ${nome_enc}, ${rg_enc} (Encarregado)`
+        encarregado = `${posto_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
         doc.text(70, 280, encarregado, {
             maxWidth: 80,
             align: 'center'
@@ -977,14 +987,14 @@ function conf() {
     doc.addImage(capturedImage, 'PNG', 55, 150, 110, 60);
 
     if (presenca === "sim") {
-        nomeTest = `${nome}, ${rg} (${qualidade})`
+        nomeTest = `${nome}, ${cin_dep} (${qualidade})`
     } else if (presenca === "nao") {
-        nomeTest = `${nome}, ${rg} (${qualidade} - ASSINATURA DISPENSADA)`
+        nomeTest = `${nome}, ${cin_dep} (${qualidade} - ASSINATURA DISPENSADA)`
     }
 
     if (nome_esc) {
-        encarregado = `${posto_enc} ${nome_enc}, ${rg_enc} (Encarregado)`
-        escriba = `${posto_esc} ${nome_esc}, ${rg_esc} (Escrivão)`
+        encarregado = `${posto_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
+        escriba = `${posto_esc} ${nome_esc}, ${cin_esc} (Escrivão)`
         doc.text(70, 260, encarregado, {
             maxWidth: 80,
             align: 'center'
@@ -999,7 +1009,7 @@ function conf() {
             align: 'center'
         })
     } else {
-        encarregado = `${posto_enc} ${nome_enc}, ${rg_enc} (Encarregado)`
+        encarregado = `${posto_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
         doc.text(70, 280, encarregado, {
             maxWidth: 80,
             align: 'center'
