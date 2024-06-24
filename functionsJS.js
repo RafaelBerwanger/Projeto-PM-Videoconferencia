@@ -16,8 +16,6 @@ var sha1_quatrof
 var sha256_quatrof
 var presenca;
 
-// -- FIM VARIÁVEIS GLOBAIS --
-
 //--FUNÇÕES INÍCIO--
 
 function onClick() {
@@ -45,14 +43,24 @@ function aplicarMascaraTelefone() {
     document.getElementById("telef").value = telefone;
 }
 
+
+
+
+
 //Função Máscara de CPF
 function aplicarMascaraCPF(input) {
-    var cpf = input.value;
+    let cpf = input.value;
+    
     cpf = cpf.replace(/\D/g, "");                    // Remove todos os caracteres não numéricos
+
     cpf = cpf.replace(/(\d{3})(\d)/, "$1.$2");       // Adiciona o primeiro ponto
+
     cpf = cpf.replace(/(\d{3})(\d)/, "$1.$2");       // Adiciona o segundo ponto
+
     cpf = cpf.replace(/(\d{3})(\d{1,2})/, "$1-$2");  // Adiciona o traço
+
     input.value = cpf;
+ 
 }
 
 
@@ -344,13 +352,13 @@ function inc_alt() {
 function sbmt1() {
 
     nome_enc = document.getElementById("entnome_enc").value
-    cni_enc = document.getElementById("entcni_enc").value
+    cni_enc = "XXX.XXX."+(document.getElementById("entcni_enc").value).slice(-6)
     posto_enc = document.getElementById("ent_posto").value
     opm = document.getElementById("opm").value
     crpm = document.getElementById("crpm").value
     nome = document.getElementById("entnome").value
     /* rg_depo = document.getElementById("entrg").value */
-    cin_dep = document.getElementById("entcin").value
+    cin_dep = "XXX.XXX."+(document.getElementById("entcin").value).slice(-6)
     nasc = document.getElementById("entnasc").value
     formattedDate = moment(nasc).format("DD/MM/YYYY")
     idad = document.getElementById("entidade").value
@@ -379,7 +387,7 @@ function sbmt1() {
 
     //Dados do Escriba (se houver)
     nome_esc = document.getElementById("entnome_esc").value
-    cin_esc = document.getElementById("entcin_esc").value
+    cin_esc = "XXX.XXX."+(document.getElementById("entcin_esc").value).slice(-6)
     posto_esc = document.getElementById("ent_posto_esc").value
 
     min = document.getElementById("min").value

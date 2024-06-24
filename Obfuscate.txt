@@ -1,0 +1,2 @@
+PS F:\wamp64\www\Projeto-videoconferência\Projeto-PM-Videoconferencia> Set-ExecutionPolicy -Scope Process Bypass
+PS F:\wamp64\www\Projeto-videoconferência\Projeto-PM-Videoconferencia> javascript-obfuscator functionsJS.js --output functionsJS_obfuscado.js
