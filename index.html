@@ -1,56 +1,159 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-    
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>&#9733;Auxiliar de Videoconferência</title>
-        <link rel="icon" href="img/favicon.ico" type="image/x-icon">
 
-        <link rel="stylesheet" href="stylesheet.css">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>&#9733;Auxiliar de Videoconferência</title>
+    <link rel="icon" href="img/favicon.ico" type="image/x-icon">
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.2/dist/FileSaver.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.4.1/jspdf.debug.js" integrity="sha384-THVO/sM0mFD9h7dfSndI6TS0PgAGavwKvB5hAxRRvc0o9cPLohB0wb/PTA7LdUHs" crossorigin="anonymous"></script>
-        <script src="//momentjs.com/downloads/moment.js"></script>
-        <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-1VLEXN0EXW"></script>
-       
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag() {
-                dataLayer.push(arguments);
-            }
-            gtag('js', new Date());
+    <link rel="stylesheet" href="stylesheet.css">
 
-            gtag('config', 'G-1VLEXN0EXW');
-        </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.2/dist/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.4.1/jspdf.debug.js"
+        integrity="sha384-THVO/sM0mFD9h7dfSndI6TS0PgAGavwKvB5hAxRRvc0o9cPLohB0wb/PTA7LdUHs"
+        crossorigin="anonymous"></script>
+    <script src="//momentjs.com/downloads/moment.js"></script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1VLEXN0EXW"></script>
 
-        <script src="./functionsJS.js"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
 
-    </head>
-    <body>
-        <header></header>
-        <form>
-                <div id="imgs_cab">
-                <img style="border-radius: 15px " src="img/parana.jpg" ; align="right" width="100px">
-                <img src="img/logo.png" align="left" width="80px" height="100px">
-                <fieldset id="titulo">
-                    <h1>Videoconferência / Gravação Audiovisual</h1>
-                    
-                </fieldset>
-                <h2></h2>
-            </div>
-            <div id="dados_encarregado">
-                <fieldset id="fs_1">
-                    <h3>Dados do Encarregado:</h3>
-                    <label for="entnome_enc">Nome:</label>
-                    <input id="entnome_enc" type="text" size="34">
-                    <label for="entcni_enc">CIN:</label>
-                    <input id="entcni_enc" type="text" size="14" maxlength="14" placeholder="000.000.000-00" onkeyup="aplicarMascaraCPF(this) ">
-                    <label for="ent_posto">Posto/Graduação:</label>
-                    <select id="ent_posto">
+        gtag('config', 'G-1VLEXN0EXW');
+    </script>
+
+    <script src="./functionsJS.js"></script>
+
+</head>
+
+<body>
+    <header></header>
+    <form>
+        <div id="imgs_cab">
+            <img style="border-radius: 15px " src="img/parana.jpg" ; align="right" width="100px">
+            <img src="img/logo.png" align="left" width="80px" height="100px">
+            <fieldset id="titulo">
+                <h1>Videoconferência / Gravação Audiovisual</h1>
+
+            </fieldset>
+            <h2></h2>
+        </div>
+        <div id="dados_encarregado">
+            <fieldset id="fs_1">
+                <h3>Dados do Encarregado:</h3>
+                <label for="entnome_enc">Nome:</label>
+                <input id="entnome_enc" type="text" size="34">
+                <label for="entcni_enc"> <abbr
+                        title="Na certidão, os 6 primeiros dígitos serão ocultados (ex: XXX.XXX.123-45)">CPF/CIN:</abbr></label>
+                <input id="entcni_enc" type="text" size="14" maxlength="14" placeholder="000.000.000-00"
+                    onkeyup="aplicarMascaraCPF(this) ">
+                <label for="ent_posto">Posto/Graduação:</label>
+                <select id="ent_posto">
+                    <option value="Coronel PM">Coronel</option>
+                    <option value="Tenente-Coronel PM">Tenente-Coronel</option>
+                    <option value="Major PM">Major</option>
+                    <option value="Capitão PM">Capitão</option>
+                    <option value="1º Tenente PM">1º Tenente</option>
+                    <option value="2º Tenente PM">2º Tenente</option>
+                    <option value="Asp. Of. PM">Asp. Of. PM</option>
+                    <option value="Subtenente">Subtenente</option>
+                    <option value="1º Sargento PM">1º Sargento</option>
+                    <option value="2º Sargento PM">2º Sargento</option>
+                    <option value="3º Sargento PM" selected>3º Sargento</option>
+                    <option value="Cabo PM">Cabo</option>
+                    <option value="Soldado PM">Soldado</option>
+                </select>
+                <BR>
+                <label for="">Procedimento:</label>
+                <select id="ent_proc">
+                    <option value="IPM">IPM</option>
+                    <option value="FATD">FATD</option>
+                    <option value="SINDICÂNCIA">SINDICÂNCIA</option>
+                    <option value="APFD">APFD</option>
+                    <option value="CD/CJ">CD/CJ</option>
+                    <option value="ADL">ADL</option>
+                    <option value="Inquérito Técnico">IT</option>
+                </select>
+                <label>Número:</label>
+                <input id="ent_num_proc">
+                <label for="crpm">CRPM:</label>
+                <!-- <input id="crpm" class="org" type="number" min="1" max="5" value="5">
+                    º  -->
+                <select name="crpm" id="crpm">
+                    <option value="1º COMANDO REGIONAL">1º</option>
+                    <option value="2º COMANDO REGIONAL">2º</option>
+                    <option value="3º COMANDO REGIONAL">3º</option>
+                    <option value="4º COMANDO REGIONAL">4º</option>
+                    <option value="5º COMANDO REGIONAL" selected>5º</option>
+                    <option value="COMANDO DE MISSÕES ESPECIAIS">CME</option>
+                    <option value="COMANDO DO POLICIAMENTO ESPECIALIZADO">CPE</option>
+                </select>
+                <label for="opm">| OPM:</label>
+                <!-- <input id="opm" class="org" type="number" min="1" max="31" value="6">
+                    º BPM  -->
+                <select name="opm" id="opm">
+                    <option value="1º BATALHÃO DE POLÍCIA MILITAR">1º BPM</option>
+                    <option value="2º BATALHÃO DE POLÍCIA MILITAR">2º BPM</option>
+                    <option value="3º BATALHÃO DE POLÍCIA MILITAR">3º BPM</option>
+                    <option value="4º BATALHÃO DE POLÍCIA MILITAR">4º BPM</option>
+                    <option value="5º BATALHÃO DE POLÍCIA MILITAR">5º BPM</option>
+                    <option value="6º BATALHÃO DE POLÍCIA MILITAR" selected>6º BPM</option>
+                    <option value="7º BATALHÃO DE POLÍCIA MILITAR">7º BPM</option>
+                    <option value="8º BATALHÃO DE POLÍCIA MILITAR">8º BPM</option>
+                    <option value="9º BATALHÃO DE POLÍCIA MILITAR">9º BPM</option>
+                    <option value="10º BATALHÃO DE POLÍCIA MILITAR">10º BPM</option>
+                    <option value="11º BATALHÃO DE POLÍCIA MILITAR">11º BPM</option>
+                    <option value="12º BATALHÃO DE POLÍCIA MILITAR">12º BPM</option>
+                    <option value="13º BATALHÃO DE POLÍCIA MILITAR">13º BPM</option>
+                    <option value="14º BATALHÃO DE POLÍCIA MILITAR">14º BPM</option>
+                    <option value="15º BATALHÃO DE POLÍCIA MILITAR">15º BPM</option>
+                    <option value="16º BATALHÃO DE POLÍCIA MILITAR">16º BPM</option>
+                    <option value="17º BATALHÃO DE POLÍCIA MILITAR">17º BPM</option>
+                    <option value="18º BATALHÃO DE POLÍCIA MILITAR">18º BPM</option>
+                    <option value="19º BATALHÃO DE POLÍCIA MILITAR">19º BPM</option>
+                    <option value="20º BATALHÃO DE POLÍCIA MILITAR">20º BPM</option>
+                    <option value="21º BATALHÃO DE POLÍCIA MILITAR">21º BPM</option>
+                    <option value="22º BATALHÃO DE POLÍCIA MILITAR">22º BPM</option>
+                    <option value="23º BATALHÃO DE POLÍCIA MILITAR">23º BPM</option>
+                    <option value="24º BATALHÃO DE POLÍCIA MILITAR">24º BPM</option>
+                    <option value="25º BATALHÃO DE POLÍCIA MILITAR">25º BPM</option>
+                    <option value="26º BATALHÃO DE POLÍCIA MILITAR">26º BPM</option>
+                    <option value="27º BATALHÃO DE POLÍCIA MILITAR">27º BPM</option>
+                    <option value="28º BATALHÃO DE POLÍCIA MILITAR">28º BPM</option>
+                    <option value="29º BATALHÃO DE POLÍCIA MILITAR">29º BPM</option>
+                    <option value="30º BATALHÃO DE POLÍCIA MILITAR">30º BPM</option>
+                    <option value="31º BATALHÃO DE POLÍCIA MILITAR">31º BPM</option>
+                    <option value="BATALHÃO DE POLÍCIA DE FRONTEIRA">BPFRON</option>
+                    <option value="BATALHÃO DE RONDAS OSTENSIVAS DE NATUREZA ESPECIAL">BPRONE</option>
+                    <option value="BATALHÃO DE POLÍCIA DE CHOQUE">BPCHOQUE</option>
+                    <option value="BATALHÃO DE POLÍCIA RODOVIÁRIA">BPRv</option>
+                    <option value="BATALHÃO DE PATRULHA ESCOLAR COMUNITÁRIA">BPEC</option>
+                    <option value="BATALHÃO DE POLÍCIA MILITAR DE OPERAÇÕES AÉREAS">BPMOA</option>
+
+                </select>
+
+                <br>
+
+                <br>
+                <span id="escriba" style="cursor: pointer; color: rgb(14, 14, 206);" onclick="insereEscriba()">
+                    &#x1F9D1;<u>Inserir Escrivão</u>
+                </span>
+                <br>
+                <div id="abre_escriba" style="display:none">
+                    <label for="entnome_esc">Nome:</label>
+                    <input id="entnome_esc" type="text" size="34">
+                    <label for="entcin_esc">CPF/CIN:</label>
+                    <input id="entcin_esc" type="text" size="14" maxlength="14" placeholder="000.000.000-00"
+                        onkeyup="aplicarMascaraCPF(this)">
+                    <label for="ent_posto_esc">Posto/Graduação:</label>
+                    <select id="ent_posto_esc">
                         <option value="Coronel PM">Coronel</option>
                         <option value="Tenente-Coronel PM">Tenente-Coronel</option>
                         <option value="Major PM">Major</option>
@@ -65,303 +168,212 @@
                         <option value="Cabo PM">Cabo</option>
                         <option value="Soldado PM">Soldado</option>
                     </select>
-                    <BR>
-                    <label for="">Procedimento:</label>
-                    <select id="ent_proc">
-                        <option value="IPM">IPM</option>
-                        <option value="FATD">FATD</option>
-                        <option value="SINDICÂNCIA">SINDICÂNCIA</option>
-                        <option value="APFD">APFD</option>
-                        <option value="CD/CJ">CD/CJ</option>
-                        <option value="ADL">ADL</option>
-                        <option value="Inquérito Técnico">IT</option>
-                    </select>
-                    <label>Número:</label>
-                    <input id="ent_num_proc">
-                    <label for="crpm">CRPM:</label>
-                    <!-- <input id="crpm" class="org" type="number" min="1" max="5" value="5">
-                    º  -->
-                    <select name="crpm" id="crpm">
-                        <option value="1º COMANDO REGIONAL">1º</option>
-                        <option value="2º COMANDO REGIONAL">2º</option>
-                        <option value="3º COMANDO REGIONAL">3º</option>
-                        <option value="4º COMANDO REGIONAL">4º</option>
-                        <option value="5º COMANDO REGIONAL" selected>5º</option>
-                        <option value="COMANDO DE MISSÕES ESPECIAIS">CME</option>
-                        <option value="COMANDO DO POLICIAMENTO ESPECIALIZADO">CPE</option>
-                    </select>
-                    <label for="opm">| OPM:</label>
-                    <!-- <input id="opm" class="org" type="number" min="1" max="31" value="6">
-                    º BPM  -->
-                    <select name="opm" id="opm">
-                        <option value="1º BATALHÃO DE POLÍCIA MILITAR">1º BPM</option>
-                        <option value="2º BATALHÃO DE POLÍCIA MILITAR">2º BPM</option>
-                        <option value="3º BATALHÃO DE POLÍCIA MILITAR">3º BPM</option>
-                        <option value="4º BATALHÃO DE POLÍCIA MILITAR">4º BPM</option>
-                        <option value="5º BATALHÃO DE POLÍCIA MILITAR">5º BPM</option>
-                        <option value="6º BATALHÃO DE POLÍCIA MILITAR" selected>6º BPM</option>
-                        <option value="7º BATALHÃO DE POLÍCIA MILITAR">7º BPM</option>
-                        <option value="8º BATALHÃO DE POLÍCIA MILITAR">8º BPM</option>
-                        <option value="9º BATALHÃO DE POLÍCIA MILITAR">9º BPM</option>
-                        <option value="10º BATALHÃO DE POLÍCIA MILITAR">10º BPM</option>
-                        <option value="11º BATALHÃO DE POLÍCIA MILITAR">11º BPM</option>
-                        <option value="12º BATALHÃO DE POLÍCIA MILITAR">12º BPM</option>
-                        <option value="13º BATALHÃO DE POLÍCIA MILITAR">13º BPM</option>
-                        <option value="14º BATALHÃO DE POLÍCIA MILITAR">14º BPM</option>
-                        <option value="15º BATALHÃO DE POLÍCIA MILITAR">15º BPM</option>
-                        <option value="16º BATALHÃO DE POLÍCIA MILITAR">16º BPM</option>
-                        <option value="17º BATALHÃO DE POLÍCIA MILITAR">17º BPM</option>
-                        <option value="18º BATALHÃO DE POLÍCIA MILITAR">18º BPM</option>
-                        <option value="19º BATALHÃO DE POLÍCIA MILITAR">19º BPM</option>
-                        <option value="20º BATALHÃO DE POLÍCIA MILITAR">20º BPM</option>
-                        <option value="21º BATALHÃO DE POLÍCIA MILITAR">21º BPM</option>
-                        <option value="22º BATALHÃO DE POLÍCIA MILITAR">22º BPM</option>
-                        <option value="23º BATALHÃO DE POLÍCIA MILITAR">23º BPM</option>
-                        <option value="24º BATALHÃO DE POLÍCIA MILITAR">24º BPM</option>
-                        <option value="25º BATALHÃO DE POLÍCIA MILITAR">25º BPM</option>
-                        <option value="26º BATALHÃO DE POLÍCIA MILITAR">26º BPM</option>
-                        <option value="27º BATALHÃO DE POLÍCIA MILITAR">27º BPM</option>
-                        <option value="28º BATALHÃO DE POLÍCIA MILITAR">28º BPM</option>
-                        <option value="29º BATALHÃO DE POLÍCIA MILITAR">29º BPM</option>
-                        <option value="30º BATALHÃO DE POLÍCIA MILITAR">30º BPM</option>
-                        <option value="31º BATALHÃO DE POLÍCIA MILITAR">31º BPM</option>
-                        <option value="BATALHÃO DE POLÍCIA DE FRONTEIRA">BPFRON</option>
-                        <option value="BATALHÃO DE RONDAS OSTENSIVAS DE NATUREZA ESPECIAL">BPRONE</option>
-                        <option value="BATALHÃO DE POLÍCIA DE CHOQUE">BPCHOQUE</option>
-                        <option value="BATALHÃO DE POLÍCIA RODOVIÁRIA">BPRv</option>
-                        <option value="BATALHÃO DE PATRULHA ESCOLAR COMUNITÁRIA">BPEC</option>
-                        <option value="BATALHÃO DE POLÍCIA MILITAR DE OPERAÇÕES AÉREAS">BPMOA</option>
-
-                    </select>
-
-                    <br>
-
-                    <br>
-                    <span id="escriba" style="cursor: pointer; color: rgb(14, 14, 206);" onclick="insereEscriba()">
-                        &#x1F9D1;<u>Inserir Escrivão</u>
-                    </span>
-                    <br>
-                    <div id="abre_escriba" style="display:none">
-                        <label for="entnome_esc">Nome:</label>
-                        <input id="entnome_esc" type="text" size="34">
-                        <label for="entcin_esc">CIN:</label>
-                        <input id="entcin_esc" type="text" size="14" maxlength="14" placeholder="000.000.000-00" onkeyup="aplicarMascaraCPF(this)">
-                        <label for="ent_posto_esc">Posto/Graduação:</label>
-                        <select id="ent_posto_esc">
-                            <option value="Coronel PM">Coronel</option>
-                            <option value="Tenente-Coronel PM">Tenente-Coronel</option>
-                            <option value="Major PM">Major</option>
-                            <option value="Capitão PM">Capitão</option>
-                            <option value="1º Tenente PM">1º Tenente</option>
-                            <option value="2º Tenente PM">2º Tenente</option>
-                            <option value="Asp. Of. PM">Asp. Of. PM</option>
-                            <option value="Subtenente">Subtenente</option>
-                            <option value="1º Sargento PM">1º Sargento</option>
-                            <option value="2º Sargento PM">2º Sargento</option>
-                            <option value="3º Sargento PM" selected>3º Sargento</option>
-                            <option value="Cabo PM">Cabo</option>
-                            <option value="Soldado PM">Soldado</option>
-                        </select>
-                    </div>
-                </fieldset>
-        </form>
-</div>
-<div id="dados_depoente">
-    <fieldset id="fs_2">
-        <h3>Dados do Depoente:</h3>
-        <label>Qualidade:</label>
-        <select id="ent_qualidade">
-            <option value="Testemunha">Testemunha</option>
-            <option value="Autor">Autor</option>
-            <option value="Acusado">Acusado</option>
-            <option value="Indiciado">Indiciado</option>
-            <option value="Vítima">Vítima</option>
-            <option value="Sindicado">Sindicado</option>
-            <option value="Ofendido">Ofendido</option>
-            <option value="Informante">Informante</option>
-        </select>
-        <label>Está presente ? </label>
-        <select id="ent_presenca">
-            <option value="sim">Sim</option>
-            <option value="nao">Não</option>
-        </select>
-        <br>
-        <label>Presta compromisso legal de dizer a verdade ? </label>
-        <select id="ent_comp">
-            <option value="sim">Sim</option>
-            <option value="nao">Não</option>
-        </select>
-        <br>
-        <label>costumes:</label>
-        <input name="ent_cost" type="radio" value="sim" onclick="func_cost()">
-        Sim
+                </div>
+            </fieldset>
+    </form>
+    </div>
+    <div id="dados_depoente">
+        <fieldset id="fs_2">
+            <h3>Dados do Depoente:</h3>
+            <label>Qualidade:</label>
+            <select id="ent_qualidade">
+                <option value="Testemunha">Testemunha</option>
+                <option value="Autor">Autor</option>
+                <option value="Acusado">Acusado</option>
+                <option value="Indiciado">Indiciado</option>
+                <option value="Vítima">Vítima</option>
+                <option value="Sindicado">Sindicado</option>
+                <option value="Ofendido">Ofendido</option>
+                <option value="Informante">Informante</option>
+            </select>
+            <label> <abbr title="Se a pessoa estiver sendo ouvida por videoconferência (à distância) marque &quot;Não&quot;, assim a sua assinatura será dispensada. Já se a pessoa estiver presente, sendo gravada, marque &quot;Sim&quot;. Assim, ela deverá assinar a certidão ao final da oitiva"> Está presente ? </abbr></label>
+            <select id="ent_presenca">
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+            </select>
+            <br>
+            <label>Presta compromisso legal de dizer a verdade ? </label>
+            <select id="ent_comp">
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+            </select>
+            <br>
+            <label>costumes:</label>
+            <input name="ent_cost" type="radio" value="sim" onclick="func_cost()">
+            Sim
             <input name="ent_cost" type="radio" value="nao" onclick="func_cost()">
-        Não (nada disse) <span style="color: red;">*</span>
-        <p id="p_texto"></p>
-        <label>Nome:</label>
-        <input id="entnome" type="text" size="34">
-<!--         <label>RG:</label>
+            Não (nada disse) <span style="color: red;">*</span>
+            <p id="p_texto"></p>
+            <label>Nome:</label>
+            <input id="entnome" type="text" size="34">
+            <!--         <label>RG:</label>
         <input id="entrg" type="text" size="14" maxlength="13"> -->
-        <label>CIN:</label>
-        <input id="entcin" type="text" size="14" maxlength="14" placeholder="000.000.000-00" onkeyup="aplicarMascaraCPF(this)">
-        <label>Data de Nascimento</label>
-        <input id="entnasc" type="date" onchange="pegaidade()">
-        <label>Idade:</label>
-        <input id="entidade" type="number" style="width: 40px;"></input>
-        <br>
-        <fieldset id="filiacao" style="width: 60%; margin-left: 0.3cm;">
-            <legend>Filiação</legend>
-            <label id="mae">
-                Mãe: <input id="entmae" type="text" size="34">
-            </label>
-            <label id="pai">
-                Pai: <input id="entpai" type="text" size="34">
-            </label>
-        </fieldset>
-        <fieldset id="estCivil" style="width: 13%;">
-            <legend>Estado Civil</legend>
-            <input id="casado" name="estc" type="radio" value="Casado">
-            Casado <br>
-            <input id="solteiro" name="estc" type="radio" value="Solteiro">
-            Solteiro<br>
-            <input id="convivente" name="estc" type="radio" value="Convivente">
-            Convivente<br>
-            <input id="divorciado" name="estc" type="radio" value="Divorciado">
-            Divorciado<br>
-            <input id="naoinf" name="estc" type="radio" value="Não informado" checked>
-            Não informado<br>
-        </fieldset>
-        <label>Telefone:</label>
-        <input style="margin-left: 8px;" id="telef" type="text" size="13" maxlength="16" placeholder="(45) 99999-9999" onkeyup="aplicarMascaraTelefone()">
-        <br>
-        <label>Profissão: </label>
-        <input id="prof" type="text" size="13" maxlength="20">
-        <br>
-        <label>Escolaridade: </label>
-        <select id="escol">
-            <option value="Ensino fundamental incomp.">Ensino fundamental incompleto</option>
-            <option value="Ensino fundamental completo">Ensino fundamental completo</option>
-            <option value="Ensino médio incompleto">Ensino médio incompleto</option>
-            <option value="Ensino médio completo">Ensino médio completo</option>
-            <option value="Ensino superior incompleto">Ensino superior incompleto</option>
-            <option value="Ensino superior completo">Ensino superior completo</option>
-        </select>
-        <br>
-        <fieldset style="width: 55%; margin-left: 15px;">
-            <legend>Endereço</legend>
-            Rua: <input id="entrua" type="text" size="34" style="margin-left: 42px;">
+            <label>CPF/CIN:</label>
+            <input id="entcin" type="text" size="14" maxlength="14" placeholder="000.000.000-00"
+                onkeyup="aplicarMascaraCPF(this)">
+            <label>Data de Nascimento</label>
+            <input id="entnasc" type="date" onchange="pegaidade()">
+            <label>Idade:</label>
+            <input id="entidade" type="number" style="width: 40px;"></input>
             <br>
-            Número: <input style="margin-left: 15px;" id="entnumero" type="number" min="1" max="999999999999">
+            <fieldset id="filiacao" style="width: 60%; margin-left: 0.3cm;">
+                <legend>Filiação</legend>
+                <label id="mae">
+                    Mãe: <input id="entmae" type="text" size="34">
+                </label>
+                <label id="pai">
+                    Pai: <input id="entpai" type="text" size="34">
+                </label>
+            </fieldset>
+            <fieldset id="estCivil" style="width: 13%;">
+                <legend>Estado Civil</legend>
+                <input id="casado" name="estc" type="radio" value="Casado">
+                Casado <br>
+                <input id="solteiro" name="estc" type="radio" value="Solteiro">
+                Solteiro<br>
+                <input id="convivente" name="estc" type="radio" value="Convivente">
+                Convivente<br>
+                <input id="divorciado" name="estc" type="radio" value="Divorciado">
+                Divorciado<br>
+                <input id="naoinf" name="estc" type="radio" value="Não informado" checked>
+                Não informado<br>
+            </fieldset>
+            <label>Telefone:</label>
+            <input style="margin-left: 8px;" id="telef" type="text" size="13" maxlength="16"
+                placeholder="(45) 99999-9999" onkeyup="aplicarMascaraTelefone()">
             <br>
-            Bairro: <input style="margin-left: 26px;" id="entbairro" type="text" size="14">
+            <label>Profissão: </label>
+            <input id="prof" type="text" size="13" maxlength="20">
             <br>
-            Município: <input style="margin-left: 1px;" id="entmun" type="text" size="14">
+            <label>Escolaridade: </label>
+            <select id="escol">
+                <option value="Ensino fundamental incomp.">Ensino fundamental incompleto</option>
+                <option value="Ensino fundamental completo">Ensino fundamental completo</option>
+                <option value="Ensino médio incompleto">Ensino médio incompleto</option>
+                <option value="Ensino médio completo">Ensino médio completo</option>
+                <option value="Ensino superior incompleto">Ensino superior incompleto</option>
+                <option value="Ensino superior completo">Ensino superior completo</option>
+            </select>
             <br>
-            Estado: <input style="margin-left: 24px;" id="entest" type="text" size="2">
-            <br>
-        </fieldset>
-        <span id="limparDepo" style="cursor: pointer; color: blue;" onclick="limpaDados()">
-            &#128196<u>Limpar dados
+            <fieldset style="width: 55%; margin-left: 15px;">
+                <legend>Endereço</legend>
+                Rua: <input id="entrua" type="text" size="34" style="margin-left: 42px;">
+                <br>
+                Número: <input style="margin-left: 15px;" id="entnumero" type="number" min="1" max="999999999999">
+                <br>
+                Bairro: <input style="margin-left: 26px;" id="entbairro" type="text" size="14">
+                <br>
+                Município: <input style="margin-left: 1px;" id="entmun" type="text" size="14">
+                <br>
+                Estado: <input style="margin-left: 24px;" id="entest" type="text" size="2">
+                <br>
+            </fieldset>
+            <span id="limparDepo" style="cursor: pointer; color: blue;" onclick="limpaDados()">
+                &#128196<u>Limpar dados
                     do depoente</u>
-        </span>
-    </fieldset>
-</div>
-<div id="dados_gravacao">
-    <fieldset id="fs_3">
-        <label>
-            <strong>Dados da Gravação:</strong>
-        </label>
-        <br>
-        <label>Data: </label>
-        <input id="datagrav" type="date">
-        <label>Cidade da Oitiva:</label>
-        <input id="id_cidade" type="text" value="Cascavel" size="10">
-        <label>Estado(UF) oitiva: </label>
-        <input id="est_oitiva" type="text" size="2" maxlength="2" value="PR">
-        <label>Local da Oitiva: </label>
-        <input id="loc_oitiva" type="text" value="Sexto Batalhão de Polícia Militar" size="30">
-        <br>
-        <label>Início </label>
-        <input id="entinicio" type="time">
-        <label>Término </label>
-        <input id="entfim" type="time">
-        <br>
-        <label>Advogado presente ?</label>
-        <span style="color: red;">*</span>
-        <br>
-        <input name="ent_adv" type="radio" value="sim" onclick="adv_presente()">
-        Sim
-            <input name="ent_adv" type="radio" value="nao" onclick="adv_presente()">
-        Não
-            <label id="adv"></label>
-        <br>
-        <label>Houve alguma alteração durante a gravação do depoimento ?</label>
-        <span style="color: red;">*</span>
-        <br>
-        <input name="ent_alt" type="radio" value="sim" onclick="func_alteracao()">
-        Sim (especifique)
-            <input name="ent_alt" type="radio" value="nao" onclick="func_alteracao()">
-        Não
+            </span>
+        </fieldset>
+    </div>
+    <div id="dados_gravacao">
+        <fieldset id="fs_3">
+            <label>
+                <strong>Dados da Gravação:</strong>
+            </label>
             <br>
-        <label id="texto_alt"></label>
-        <br>
-        <label>Carregue o arquivo da oitiva: </label>
-        <br>
-        <input type="file" id="fileInput" onchange="calculateHash()" oninput="geraprevia()">
-        <span style="cursor: pointer; color: blue;" onclick="onClick()">
-            <u>Inserir mais vídeos (max. 4)</u>
-        </span>
-        <span id="ins_dois"></span>
-        <span id="ins_tres"></span>
-        <span id="ins_quatro"></span>
-        <br>
-        <!--<input type="file" id="fileInput3" onchange="calculateHash()" oninput="geraprevia()"><br>
+            <label>Data: </label>
+            <input id="datagrav" type="date">
+            <label>Cidade da Oitiva:</label>
+            <input id="id_cidade" type="text" value="Cascavel" size="10">
+            <label>Estado(UF) oitiva: </label>
+            <input id="est_oitiva" type="text" size="2" maxlength="2" value="PR">
+            <label>Local da Oitiva: </label>
+            <input id="loc_oitiva" type="text" value="Sexto Batalhão de Polícia Militar" size="30">
+            <br>
+            <label>Início </label>
+            <input id="entinicio" type="time">
+            <label>Término </label>
+            <input id="entfim" type="time">
+            <br>
+            <label>Advogado presente ?</label>
+            <span style="color: red;">*</span>
+            <br>
+            <input name="ent_adv" type="radio" value="sim" onclick="adv_presente()">
+            Sim
+            <input name="ent_adv" type="radio" value="nao" onclick="adv_presente()">
+            Não
+            <label id="adv"></label>
+            <br>
+            <label>Houve alguma alteração durante a gravação do depoimento ?</label>
+            <span style="color: red;">*</span>
+            <br>
+            <input name="ent_alt" type="radio" value="sim" onclick="func_alteracao()">
+            Sim (especifique)
+            <input name="ent_alt" type="radio" value="nao" onclick="func_alteracao()">
+            Não
+            <br>
+            <label id="texto_alt"></label>
+            <br>
+            <label>Carregue o arquivo da oitiva: </label>
+            <br>
+            <input type="file" id="fileInput" onchange="calculateHash()" oninput="geraprevia()">
+            <span style="cursor: pointer; color: blue;" onclick="onClick()">
+                <u>Inserir mais vídeos (max. 4)</u>
+            </span>
+            <span id="ins_dois"></span>
+            <span id="ins_tres"></span>
+            <span id="ins_quatro"></span>
+            <br>
+            <!--<input type="file" id="fileInput3" onchange="calculateHash()" oninput="geraprevia()"><br>
             <input type="file" id="fileInput4" onchange="calculateHash()" oninput="geraprevia()"><br>-->
-        <canvas id="preview-canvas"></canvas>
-        <label id="intrucao"></label>
-        <fieldset style="width:40%; height: 40%; margin-left: 0.1cm;">
-            <legend>Imagem capturada</legend>
-</Label><img id="captured-image" style="display:contents">
-</fieldset>
-<fieldset style="width: 70%; margin-left: 4px;">
-    <legend>Códigos HASH</legend>
-    <label>SHA-1</label>
-    <input id="sha1" type="text" size="80" style="margin-left: 30px;">
-    <br>
-    <label>SHA-256</label>
-    <input id="sha256" type="text" type="text" size="80" style="margin-left: 15px;">
-    <br>
-    <p id="se_dois"></p>
-    <p id="se_tres"></p>
-    <p id="se_quatro"></p>
-</fieldset>
-<p>
-    <label>Duração do vídeo:</label>
-    <input id="min" type="text" size="1" style="text-align: center;" placeholder="min">
-    :<input id="seg" type="text" size="1" style="text-align: center" ; placeholder="seg">
-</p>
-<span id="limpar" style="cursor: pointer; color: blue;">
-    &#128196<u>Limpar dados de vídeo</u>
-</span>
-</fieldset></div><br>
-<!--Botão de gravar formulário-->
-<center>
-    <button id="sbmt" type="button"  value="Gravar" onclick="sbmt1(); func_alteracao(); formatar(); confirmar(); inc_cost(); inc_alt();">Gravar</button>
-    <!-- style="
-    width: 3cm; height: 1cm; border-radius: 5px; background-color: rgb(247, 185, 72);" -->
-    
-    <p id="btnconf"></p>
-</center>
-<p id="mostradados">
-<p id="testpdf"></p>
-<footer>
+            <canvas id="preview-canvas"></canvas>
+            <label id="intrucao"></label>
+            <fieldset style="width:40%; height: 40%; margin-left: 0.1cm;">
+                <legend>Imagem capturada</legend>
+                </Label><img id="captured-image" style="display:contents">
+            </fieldset>
+            <fieldset style="width: 70%; margin-left: 4px;">
+                <legend>Códigos HASH</legend>
+                <label>SHA-1</label>
+                <input id="sha1" type="text" size="80" style="margin-left: 30px;">
+                <br>
+                <label>SHA-256</label>
+                <input id="sha256" type="text" type="text" size="80" style="margin-left: 15px;">
+                <br>
+                <p id="se_dois"></p>
+                <p id="se_tres"></p>
+                <p id="se_quatro"></p>
+            </fieldset>
+            <p>
+                <label>Duração do vídeo:</label>
+                <input id="min" type="text" size="1" style="text-align: center;" placeholder="min">
+                :<input id="seg" type="text" size="1" style="text-align: center" ; placeholder="seg">
+            </p>
+            <span id="limpar" style="cursor: pointer; color: blue;">
+                &#128196<u>Limpar dados de vídeo</u>
+            </span>
+        </fieldset>
+    </div><br>
+    <!--Botão de gravar formulário-->
     <center>
-        <div style="font-style: italic; margin-top: 5cm;" id="rodape">By 3º Sgt. Rafael A. Berwanger, 6º BPM.
+        <button id="sbmt" type="button" value="Gravar"
+            onclick="sbmt1(); func_alteracao(); formatar(); confirmar(); inc_cost(); inc_alt();">Gravar</button>
+        <!-- style="
+    width: 3cm; height: 1cm; border-radius: 5px; background-color: rgb(247, 185, 72);" -->
+
+        <p id="btnconf"></p>
+    </center>
+    <p id="mostradados">
+    <p id="testpdf"></p>
+    <footer>
+        <center>
+            <div style="font-style: italic; margin-top: 5cm;" id="rodape">By 3º Sgt. Rafael A. Berwanger, 6º BPM.
                 Telefone: 45 9.8422-6612
                 E-mail: rafaelicm92@gmail.com
             </div>
-    </center>
-</footer>
+        </center>
+    </footer>
 
 
-</body></html>
+</body>
+
+</html>
