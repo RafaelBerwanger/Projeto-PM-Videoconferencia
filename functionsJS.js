@@ -16,19 +16,19 @@ var sha1_quatrof
 var sha256_quatrof
 var presenca;
 
-//--FUNÇÕES INÍCIO--
 
+//--FUNÇÕES INÍCIO--
 function onClick() {
+     
     document.getElementById("ins_dois").innerHTML = '<br><input type="file" id="fileInput2" onchange="calculateHash2()">'
 
     document.getElementById("ins_tres").innerHTML = '<br><input type="file" id="fileInput3" onchange="calculateHash3()">'
-
+    
     document.getElementById("ins_quatro").innerHTML = '<br><input type="file" id="fileInput4" onchange="calculateHash4()">'
 
-    document.getElementById("ins_dois").style.display = "";
-    document.getElementById("ins_tres").style.display = "";
-    document.getElementById("ins_quatro").style.display = "";
-
+    //document.getElementById("ins_dois").style.display = "";
+    //document.getElementById("ins_tres").style.display = "";
+    //document.getElementById("ins_quatro").style.display = "";
 }
 
 //Função Máscara de Telefone
@@ -50,7 +50,7 @@ function aplicarMascaraTelefone() {
 //Função Máscara de CPF
 function aplicarMascaraCPF(input) {
     let cpf = input.value;
-    
+
     cpf = cpf.replace(/\D/g, "");                    // Remove todos os caracteres não numéricos
 
     cpf = cpf.replace(/(\d{3})(\d)/, "$1.$2");       // Adiciona o primeiro ponto
@@ -60,7 +60,7 @@ function aplicarMascaraCPF(input) {
     cpf = cpf.replace(/(\d{3})(\d{1,2})/, "$1-$2");  // Adiciona o traço
 
     input.value = cpf;
- 
+
 }
 
 
@@ -206,6 +206,7 @@ function limpaDados() {
     document.getElementById("entrua").value = "";
     document.getElementById("entnumero").value = "";
     document.getElementById("entbairro").value = "";
+    document.getElementById("entcomp").value = "";
     document.getElementById("entmun").value = "";
     document.getElementById("entest").value = "";
     document.getElementById("datagrav").value = "";
@@ -352,13 +353,13 @@ function inc_alt() {
 function sbmt1() {
 
     nome_enc = document.getElementById("entnome_enc").value
-    cni_enc = "XXX.XXX."+(document.getElementById("entcni_enc").value).slice(-6)
+    cni_enc = "XXX." + (document.getElementById("entcin").value).slice(-10, -2) + "XX"
     posto_enc = document.getElementById("ent_posto").value
     opm = document.getElementById("opm").value
     crpm = document.getElementById("crpm").value
     nome = document.getElementById("entnome").value
     /* rg_depo = document.getElementById("entrg").value */
-    cin_dep = "XXX.XXX."+(document.getElementById("entcin").value).slice(-6)
+    cin_dep = "XXX." + (document.getElementById("entcin").value).slice(-10, -2) + "XX"
     nasc = document.getElementById("entnasc").value
     formattedDate = moment(nasc).format("DD/MM/YYYY")
     idad = document.getElementById("entidade").value
@@ -372,6 +373,7 @@ function sbmt1() {
     rua = document.getElementById("entrua").value
     numero = document.getElementById("entnumero").value
     bairro = document.getElementById("entbairro").value
+    complemento = document.getElementById("entcomp").value
     municipio = document.getElementById("entmun").value
     estado = document.getElementById("entest").value
     datagrav = document.getElementById("datagrav").value
@@ -387,7 +389,7 @@ function sbmt1() {
 
     //Dados do Escriba (se houver)
     nome_esc = document.getElementById("entnome_esc").value
-    cin_esc = "XXX.XXX."+(document.getElementById("entcin_esc").value).slice(-6)
+    cin_esc = "XXX." + (document.getElementById("entcin").value).slice(-10, -2) + "XX"
     posto_esc = document.getElementById("ent_posto_esc").value
 
     min = document.getElementById("min").value
@@ -494,7 +496,7 @@ function calculateHash2() {
         var ha_dois = ha.toUpperCase();
         var ha_1_dois = ha_1.toUpperCase();
         console.log(ha_dois);
-        document.getElementById("se_dois").innerHTML = '<label>SHA-1[2]</label><input id="sha1_dois" type="text" size="80" style="margin-left: 30px;"><br><label>SHA-256[2]</label><input id="sha256_dois" type="text" type="text" size="80" style="margin-left: 15px;"><br>'
+        document.getElementById("se_dois").innerHTML = '<label>SHA-1[2]</label><input id="sha1_dois" type="text" size="80" style="margin-left: 30px;" readonly><br><label>SHA-256[2]</label><input id="sha256_dois" type="text" type="text" size="80" style="margin-left: 15px;" readonly><br>'
         document.getElementById("se_dois").style.display = "";
         document.getElementById("sha256_dois").value = ha_dois;
         document.getElementById("sha1_dois").value = ha_1_dois;
@@ -522,7 +524,7 @@ function calculateHash3() {
         var ha_tres = ha.toUpperCase();
         var ha_1_tres = ha_1.toUpperCase();
         console.log(ha_tres);
-        document.getElementById("se_tres").innerHTML = '<label>SHA-1[3]</label><input id="sha1_tres" type="text" size="80" style="margin-left: 30px;"><br><label>SHA-256[3]</label><input id="sha256_tres" type="text" type="text" size="80" style="margin-left: 15px;"><br>'
+        document.getElementById("se_tres").innerHTML = '<label>SHA-1[3]</label><input id="sha1_tres" type="text" size="80" style="margin-left: 30px;" readonly><br><label>SHA-256[3]</label><input id="sha256_tres" type="text" type="text" size="80" style="margin-left: 15px;" readonly><br>'
         document.getElementById("se_tres").style.display = "";
         document.getElementById("sha256_tres").value = ha_tres;
         document.getElementById("sha1_tres").value = ha_1_tres;
@@ -550,7 +552,7 @@ function calculateHash4() {
         var ha_quatro = ha.toUpperCase();
         var ha_1_quatro = ha_1.toUpperCase();
         console.log(ha_quatro);
-        document.getElementById("se_quatro").innerHTML = '<label>SHA-1[4]</label><input id="sha1_quatro" type="text" size="80" style="margin-left: 30px;"><br><label>SHA-256[4]</label><input id="sha256_quatro" type="text" type="text" size="80" style="margin-left: 15px;"><br>'
+        document.getElementById("se_quatro").innerHTML = '<label>SHA-1[4]</label><input id="sha1_quatro" type="text" size="80" style="margin-left: 30px;" readonly><br><label>SHA-256[4]</label><input id="sha256_quatro" type="text" type="text" size="80" style="margin-left: 15px;" readonly><br>'
         document.getElementById("se_quatro").style.display = "";
         document.getElementById("sha256_quatro").value = ha_quatro;
         document.getElementById("sha1_quatro").value = ha_1_quatro;
@@ -673,7 +675,7 @@ function conf() {
     doc.text(escolaridade, 145, 150)
     doc.line(20, 155, 200, 155)
     doc.text('Endereço', 25, 160)
-    doc.text(`${rua}, ${numero}, ${bairro} ${municipio}/ ${estado}`, 52, 160)
+    doc.text(`${rua}, ${numero}, ${complemento} - ${bairro}, ${municipio}/ ${estado}`, 52, 160)
     doc.line(20, 165, 200, 165)
     doc.text('Hora de Início:', 25, 170)
     doc.text(inicgrav, 56, 170)
@@ -825,7 +827,7 @@ function conf() {
     doc.text(escolaridade, 145, 150)
     doc.line(20, 155, 200, 155)
     doc.text('Endereço', 25, 160)
-    doc.text(`${rua}, ${numero}, ${bairro} ${municipio}/ ${estado}`, 52, 160)
+    doc.text(`${rua}, ${numero}, ${complemento} - ${bairro}, ${municipio}/ ${estado}`, 52, 160)
     doc.line(20, 165, 200, 165)
     doc.text('Hora de Início:', 25, 170)
     doc.text(inicgrav, 56, 170)
