@@ -353,7 +353,7 @@ function inc_alt() {
 function sbmt1() {
 
     nome_enc = document.getElementById("entnome_enc").value
-    cni_enc = "XXX." + (document.getElementById("entcin").value).slice(-10, -2) + "XX"
+    cni_enc = "XXX." + (document.getElementById("entcni_enc").value).slice(-10, -2) + "XX"
     posto_enc = document.getElementById("ent_posto").value
     opm = document.getElementById("opm").value
     crpm = document.getElementById("crpm").value
@@ -389,7 +389,7 @@ function sbmt1() {
 
     //Dados do Escriba (se houver)
     nome_esc = document.getElementById("entnome_esc").value
-    cin_esc = "XXX." + (document.getElementById("entcin").value).slice(-10, -2) + "XX"
+    cin_esc = "XXX." + (document.getElementById("entcin_esc").value).slice(-10, -2) + "XX"
     posto_esc = document.getElementById("ent_posto_esc").value
 
     min = document.getElementById("min").value
