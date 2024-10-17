@@ -597,7 +597,13 @@ function conf() {
 
     test_maiusc = qualidade.toUpperCase()
     cabecalho = `ESTADO DO PARANÁ\nPOLÍCIA MILITAR\n${crpm}\n${opm}\n`
-    termode = `TERMO DE INQUIRIÇÃO DE ${test_maiusc}`
+    if (qualidade == 'Sindicado') {
+        termode = `TERMO DE PERGUNTAS AO ${test_maiusc}`
+        
+    }else{
+        termode = `TERMO DE INQUIRIÇÃO DE ${test_maiusc}`
+    }
+
     if (presenca == "sim") {
         intro = `Aos ${date_dia} dias do mês de ${date_mes} do ano de ${date_ano}, nesta cidade de ${cid_oitiva}, ${est_oitiva}, às ${inicgrav}, no(a) ${loc_oitiva}, onde se encontravam presentes o(a) Encarregado(a) do(a) ${nome_procedimento} nº ${num_proc} - COGER, que ao final assina, compareceu o(a) ${qualidade} a seguir qualificado(a):`
     } else if (presenca == "nao") {
