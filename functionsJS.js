@@ -597,7 +597,7 @@ function conf() {
 
     test_maiusc = qualidade.toUpperCase()
     cabecalho = `ESTADO DO PARANÁ\nPOLÍCIA MILITAR\n${crpm}\n${opm}\n`
-    if (qualidade == 'Sindicado') {
+    if (qualidade == 'Sindicado' || qualidade == 'Envolvido') {
         termode = `TERMO DE PERGUNTAS AO ${test_maiusc}`
         
     }else{
