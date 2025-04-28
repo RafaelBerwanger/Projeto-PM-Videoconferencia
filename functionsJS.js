@@ -300,6 +300,7 @@ function sbmt1() {
     nome_enc = document.getElementById("entnome_enc").value
     cni_enc = "XXX." + (document.getElementById("entcni_enc").value).slice(-10, -2) + "XX"
     posto_enc = document.getElementById("ent_posto").value
+    quadro_enc = document.getElementById("quadro_enc").value
     opm = document.getElementById("opm").value
     crpm = document.getElementById("crpm").value
     nome = document.getElementById("entnome").value
@@ -338,6 +339,7 @@ function sbmt1() {
     nome_esc = document.getElementById("entnome_esc").value
     cin_esc = "XXX." + (document.getElementById("entcin_esc").value).slice(-10, -2) + "XX"
     posto_esc = document.getElementById("ent_posto_esc").value
+    quadro_esc = document.getElementById("quadro_esc").value
 
     min = document.getElementById("min").value
     seg = document.getElementById("seg").value
@@ -680,8 +682,8 @@ function conf() {
     }
 
     if (nome_esc) {
-        encarregado = `${posto_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
-        escriba = `${posto_esc} ${nome_esc}, ${cin_esc} (Escrivão)`
+        encarregado = `${posto_enc} ${quadro_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
+        escriba = `${posto_esc} ${quadro_esc} ${nome_esc}, ${cin_esc} (Escrivão)`
         doc.text(encarregado, 70, 260, {
             maxWidth: 80,
             align: 'center'
@@ -696,7 +698,7 @@ function conf() {
             align: 'center'
         })
     } else {
-        encarregado = `${posto_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
+        encarregado = `${posto_enc} ${quadro_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
         doc.text(encarregado, 70, 280, {
             maxWidth: 80,
             align: 'center'
@@ -831,8 +833,8 @@ function conf() {
     }
 
     if (nome_esc) {
-        encarregado = `${posto_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
-        escriba = `${posto_esc} ${nome_esc}, ${cin_esc} (Escrivão)`
+        encarregado = `${posto_enc} ${quadro_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
+        escriba = `${posto_esc} ${quadro_esc} ${nome_esc}, ${cin_esc} (Escrivão)`
         doc.text(70, 260, encarregado, {
             maxWidth: 80,
             align: 'center'
@@ -847,7 +849,7 @@ function conf() {
             align: 'center'
         })
     } else {
-        encarregado = `${posto_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
+        encarregado = `${posto_enc} ${quadro_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
         doc.text(70, 280, encarregado, {
             maxWidth: 80,
             align: 'center'
@@ -956,8 +958,8 @@ function conf() {
     }
 
     if (nome_esc) {
-        encarregado = `${posto_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
-        escriba = `${posto_esc} ${nome_esc}, ${cin_esc} (Escrivão)`
+        encarregado = `${posto_enc} ${quadro_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
+        escriba = `${posto_esc} ${quadro_esc} ${nome_esc}, ${cin_esc} (Escrivão)`
         doc.text(70, 260, encarregado, {
             maxWidth: 80,
             align: 'center'
@@ -972,7 +974,7 @@ function conf() {
             align: 'center'
         })
     } else {
-        encarregado = `${posto_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
+        encarregado = `${posto_enc} ${quadro_enc} ${nome_enc}, ${cni_enc} (Encarregado)`
         doc.text(70, 280, encarregado, {
             maxWidth: 80,
             align: 'center'
