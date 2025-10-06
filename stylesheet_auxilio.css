@@ -1,0 +1,47 @@
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 10;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto; /* permite rolar o modal */
+  background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+  color: black;
+  background-color: #e9dddd;
+  overflow-y: auto;
+  margin: 8% auto;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  text-align: left;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close:hover {
+  color: #000;
+}
+
+.checklist-item {
+  margin: 10px 0;
+}
+
+.checklist-item input {
+  margin-right: 10px;
+}
+

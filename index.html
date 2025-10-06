@@ -9,6 +9,7 @@
     <link rel="icon" href="img/favicon.ico" type="image/x-icon">
 
     <link rel="stylesheet" href="stylesheet.css">
+    <link rel="stylesheet" href="stylesheet_auxilio.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.2/dist/FileSaver.min.js"></script>
@@ -31,20 +32,58 @@
 
     <script src="./functionsJS.js"></script>
 
+
 </head>
 
 <body>
-    <header></header>
-    <form>
-        <div id="imgs_cab">
+    <header>
+         <div id="imgs_cab">
             <img style="border-radius: 15px " src="img/parana.jpg" ; align="right" width="100px">
             <img src="img/logo.png" align="left" width="80px" height="100px">
-            <fieldset id="titulo">
-                <h1>Videoconferência / Gravação Audiovisual</h1>
 
-            </fieldset>
-            <h2></h2>
         </div>
+        <fieldset id="titulo">
+            <h1>Videoconferência / Gravação Audiovisual</h1>
+            <h2>Checklist de Tarefas</h2>
+            <p>Use o botão abaixo para abrir seu checklist personalizado 👇</p>
+            <button id="openModal">Checklist</button>
+            <!-- Modal -->
+            <div id="checklistModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" id="closeModal">&times;</span>
+                    <h3 style="text-align: center;" >Sequência de Ações</h3>
+
+                    <div id="checklist">
+                        <div class="checklist-item"><label><input type="checkbox"> Saudação / Hora e data / Identificação do Encarregado</label></div>
+                        <div class="checklist-item"><input type="checkbox"> Breve resumo dos fatos apurados</div>
+                        <div class="checklist-item"><input type="checkbox"> Informar sobre a gravação (fins exclusivos)</div>
+                        <div class="checklist-item"><input type="checkbox"> Tomar qualificação do depoente:</div>
+                        <div class="checklist-item"><input type="checkbox"> Nome</div>
+                        <div class="checklist-item"><input type="checkbox"> RG / CPF / Data de Nascimento</div>
+                        <div class="checklist-item"><input type="checkbox"> Filiação</div>
+                        <div class="checklist-item"><input type="checkbox"> Estado Civil</div>
+                        <div class="checklist-item"><input type="checkbox"> Telefone / Profissão / Escolaridade</div>
+                        <div class="checklist-item"><input type="checkbox"> Endereço (Rua, Núm, Bairro, Comp, Município)</div>
+                        <div class="checklist-item"><input type="checkbox"> Mostrar o documento para câmera</div>
+                        <div class="checklist-item" style="color: red;"><input type="checkbox"> Verificar grau de parentesco, amizade ou inimizade com o Acusado/Indiciado</div>
+                        <div class="checklist-item" style="color: red;"><input type="checkbox"> Colher/Dispensar do compromisso legal de dizer a verdade, sob pena do crime de falso testemunho</div>
+                        <div class="checklist-item"><input type="checkbox"> Ouvir relato da parte</div>
+                        <div class="checklist-item"><input type="checkbox"> Momento de formulação de questionamentos do Encarregado e do Defensor</div>
+                        <div class="checklist-item" style="color: red;"><input type="checkbox"> Perguntar se há algo mais a ser acrescentado</div>
+                        <div class="checklist-item"><input type="checkbox"> Falar a HORA FINAL da oitiva e encerrar a gravação</div>
+                    </div>
+
+                    <hr>
+                    <input type="text" id="newItem" placeholder="Adicionar nova tarefa..." style="width:70%;">
+                    <button id="addItem">+</button>
+                </div>
+            </div>
+
+        </fieldset>
+        <h2></h2>
+    </header>
+    <form>
+       
         <div id="dados_encarregado">
             <fieldset id="fs_1">
                 <h3>Dados do Encarregado:</h3>
@@ -393,7 +432,8 @@
         </center>
     </footer>
 
-
 </body>
+
+<script src="./auxilio.js"></script>
 
 </html>

@@ -1,45 +1,52 @@
 body {
     background-color: rgb(221, 221, 248);
     background: linear-gradient(black, rgb(110, 63, 2), rgb(141, 96, 0), rgb(255, 255, 94) 1200px);
-   }
+}
 
-h1{color: rgb(209, 204, 204);
-   padding-top: 5%;
-   padding-left: 39%;
-   
-
-    
+h1 {
+    color: rgb(209, 204, 204);
+    padding-top: 5%;
+    padding-left: 39%;
 }
 
 @keyframes piscar {
-    0%   { opacity: 1; }
-    50%  { opacity: 0; }
-    100% { opacity: 1; }
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
 }
 
 
 
-input{background-color: rgb(243, 243, 238);
-border-radius: 5px;
-margin-top: 0.1cm;
-margin-bottom: 0.1cm;
-margin-right: 0.1cm;
-margin-left: 0.1cm;
-    
+input {
+    background-color: rgb(243, 243, 238);
+    border-radius: 5px;
+    margin-top: 0.1cm;
+    margin-bottom: 0.1cm;
+    margin-right: 0.1cm;
+    margin-left: 0.1cm;
+
 }
 
-fieldset#titulo{
+fieldset#titulo {
     width: 1200px;
     border: none;
     margin-bottom: 0.1%;
     padding-bottom: 0.1%;
     margin-left: auto;
-    
-     
+
+
 
 }
 
-h1{
+h1 {
     padding: 1%;
     padding-left: 27%;
     margin-left: 0.1cm;
@@ -54,51 +61,53 @@ h1{
     color: white;
     cursor: pointer;
     text-align: center;
-  }
+}
 
-  #preview-canvas:hover {
+#preview-canvas:hover {
     background-color: #3e8e41;
-  }
-  
+}
 
 
-select{background-color: rgb(243, 243, 238);
+
+select {
+    background-color: rgb(243, 243, 238);
     border-radius: 5px;
     margin-top: 0.1cm;
     margin-bottom: 0.1cm;
 
 }
 
-fieldset{
+fieldset {
     margin: 5px auto;
     text-align: left;
 }
 
-fieldset#estCivil{
+fieldset#estCivil {
     margin: 10px;
-    
+
 }
 
-div#imgs_cab{
+div#imgs_cab {
     margin: 10px;
-    
+
 }
+
 fieldset#fs_img {
-    
+
     height: auto;
     width: 1200px;
     border: none;
-    
+
 }
 
 
 fieldset#fs_1 {
-    
+
     height: auto;
     width: 1200px;
     border: 1px solid rgb(17, 17, 16);
     background: rgb(190, 171, 134);
-    
+
 }
 
 fieldset#fs_2 {
@@ -108,40 +117,45 @@ fieldset#fs_2 {
     background: rgb(230, 241, 191);
 }
 
-button{
+button {
     width: 3cm;
     height: 1cm;
     border-radius: 10px;
     background-color: rgb(247, 103, 0);
-    font-weight:bold;
+    font-weight: bold;
     font-size: medium;
     cursor: pointer;
     box-shadow: 10px 5px 10px 0 rgba(0, 0, 0, 0.5);
 
 }
 
-button:hover{
-    background-color:rgb(221, 169, 132); ;
+button:hover {
+    background-color: rgb(221, 169, 132);
+    ;
 
 }
 
-button:active{
-    background-color:rgb(83, 36, 3); ;
+button:active {
+    background-color: rgb(83, 36, 3);
+    ;
 
 }
 
-button#btnGera{
-    background-color:rgb(1, 255, 22); ;
+button#btnGera {
+    background-color: rgb(1, 255, 22);
+    ;
 
 }
 
-button:hover#btnGera{
-    background-color:rgb(177, 233, 189); ;
+button:hover#btnGera {
+    background-color: rgb(177, 233, 189);
+    ;
 
 }
 
-button:active#btnGera{
-    background-color:rgb(19, 59, 14); ;
+button:active#btnGera {
+    background-color: rgb(19, 59, 14);
+    ;
 
 }
 
@@ -154,10 +168,10 @@ fieldset#fs_3 {
     background: rgb(154, 201, 172);
 }
 
-.org{
+.org {
     width: 30px;
 }
 
-#titulo{
+#titulo {
     color: white;
 }
