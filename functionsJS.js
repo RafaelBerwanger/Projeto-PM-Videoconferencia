@@ -611,7 +611,7 @@ function conf() {
     doc.line(20, 125, 200, 125)
     /*     doc.text('RG', 25, 130)
         doc.text(rg_depo, 52, 130) */
-    doc.text('CIN', 25, 130)
+    doc.text('CPF / CIN', 25, 130)
     doc.text(cin_dep, 52, 130)
 
     doc.text('Nascimento:', 122, 130)
@@ -764,7 +764,7 @@ function conf() {
     doc.line(20, 125, 200, 125)
     /*     doc.text('RG', 25, 130)
         doc.text(rg_depo, 52, 130) */
-    doc.text('CIN', 25, 130)
+    doc.text('CPF / CIN', 25, 130)
     doc.text(cin_dep, 52, 130)
     doc.text('Nascimento:', 122, 130)
     doc.text(formattedDate, 145, 130)
