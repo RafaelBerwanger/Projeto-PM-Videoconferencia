@@ -39,10 +39,11 @@
         <ul class="menu">
             <li><a href="index.html">Oitivas Audiovisuais</a></li>
             <li><a href="presencial.html">Oitivas Escritas</a></li>
-            
+           
         </ul>
     </nav>
-
+    
+    <h1 style="color: chartreuse;">Obs: Em desenvolvimento (funcionalidade ainda não disponível)</h1>
 </body>
 
 
@@ -54,54 +55,9 @@
 
     </div>
     <fieldset id="titulo">
-        <h1>Videoconferência / Gravação Audiovisual</h1>
-        <h2>Checklist de Tarefas</h2>
-        <p>Use o botão abaixo para abrir seu checklist personalizado 👇</p>
-        <button id="openModal">Checklist</button>
-        <!-- Modal -->
-        <div id="checklistModal" class="modal">
-            <div class="modal-content">
-                <span class="close" id="closeModal">&times;</span>
-                <h3 style="text-align: center;">Sequência de Ações</h3>
-
-                <div id="checklist">
-                    <div class="checklist-item"><label><input type="checkbox"> Saudação / Hora e data /
-                            Identificação do Encarregado</label></div>
-                    <div class="checklist-item"><input type="checkbox"> Breve resumo dos fatos apurados</div>
-                    <div class="checklist-item"><input type="checkbox"> Informar sobre a gravação (fins exclusivos)
-                    </div>
-                    <div class="checklist-item"><input type="checkbox"> Tomar qualificação do depoente:</div>
-                    <div class="checklist-item"><input type="checkbox"> Nome</div>
-                    <div class="checklist-item"><input type="checkbox"> RG / CPF / Data de Nascimento</div>
-                    <div class="checklist-item"><input type="checkbox"> Filiação</div>
-                    <div class="checklist-item"><input type="checkbox"> Estado Civil</div>
-                    <div class="checklist-item"><input type="checkbox"> Telefone / Profissão / Escolaridade</div>
-                    <div class="checklist-item"><input type="checkbox"> Endereço (Rua, Núm, Bairro, Comp, Município)
-                    </div>
-                    <div class="checklist-item"><input type="checkbox"> Mostrar o documento para câmera</div>
-                    <div class="checklist-item" style="color: red;"><input type="checkbox"> Verificar grau de
-                        parentesco, amizade ou inimizade com o Acusado/Indiciado</div>
-                    <div class="checklist-item" style="color: red;"><input type="checkbox"> Colher/Dispensar do
-                        compromisso legal de dizer a verdade, sob pena do crime de falso testemunho</div>
-                    <div class="checklist-item"><input type="checkbox"> Ouvir relato da parte</div>
-                    <div class="checklist-item"><input type="checkbox"> Momento de formulação de questionamentos do
-                        Encarregado e do Defensor</div>
-                    <div class="checklist-item" style="color: red;"><input type="checkbox"> Perguntar se há algo
-                        mais a ser acrescentado</div>
-                    <div class="checklist-item"><input type="checkbox"> Falar a HORA FINAL da oitiva e encerrar a
-                        gravação</div>
-                </div>
-
-                <hr>
-                <input type="text" id="newItem" placeholder="Adicionar nova tarefa..." style="width:70%;">
-                <button id="addItem">+</button>
-            </div>
-        </div>
+        <h1>Oitivas Escritas</h1>
 
     </fieldset>
-    <h2></h2>
-
-
 
 
 </header>
@@ -365,83 +321,23 @@
             </span>
         </fieldset>
     </div>
+
+    <!-- Aqui, neste forms, é dados de Declaração -->
     <div id="dados_gravacao">
         <fieldset id="fs_3">
             <label>
-                <strong>Dados da Gravação:</strong>
+                <strong>Declaração:</strong>
+                <br>
+                <textarea id="depoimento_txt" style="width: 805px; height: 400px; align-items: center;"></textarea>
             </label>
-            <br>
-            <label>Data: </label>
-            <input id="datagrav" type="date">
-            <label>Cidade da Oitiva:</label>
-            <input id="id_cidade" type="text" value="Cascavel" size="10">
-            <label>Estado(UF) oitiva: </label>
-            <input id="est_oitiva" type="text" size="2" maxlength="2" value="PR">
-            <label>Local da Oitiva: </label>
-            <input id="loc_oitiva" type="text" value="Sexto Batalhão de Polícia Militar" size="30">
-            <br>
-            <label>Início </label>
-            <input id="entinicio" type="time">
-            <label>Término </label>
-            <input id="entfim" type="time">
-            <br>
-            <label>Advogado presente ?</label>
-            <span style="color: red;">*</span>
-            <br>
-            <input name="ent_adv" type="radio" value="sim" onclick="adv_presente()">
-            Sim
-            <input name="ent_adv" type="radio" value="nao" onclick="adv_presente()">
-            Não
-            <label id="adv"></label>
-            <br>
-            <label>Houve alguma alteração durante a gravação do depoimento ?</label>
-            <span style="color: red;">*</span>
-            <br>
-            <input name="ent_alt" type="radio" value="sim" onclick="func_alteracao()">
-            Sim (especifique)
-            <input name="ent_alt" type="radio" value="nao" onclick="func_alteracao()">
-            Não
-            <br>
-            <label id="texto_alt"></label>
-            <br>
-            <label>Carregue o arquivo da oitiva: </label>
-            <br>
-            <input type="file" id="fileInput" onchange="calculateHash()" oninput="geraprevia()">
-            <span style="cursor: pointer; color: blue;" onclick="onClick()">
-                <u>Inserir mais vídeos (max. 4)</u>
-            </span>
-            <span id="ins_dois"></span>
-            <span id="ins_tres"></span>
-            <span id="ins_quatro"></span>
-            <br>
-            <canvas id="preview-canvas"></canvas>
-            <label id="intrucao"></label>
-            <fieldset style="width:40%; height: 40%; margin-left: 0.1cm;">
-                <legend>Imagem capturada</legend>
-                </Label><img id="captured-image" style="display:contents">
-            </fieldset>
-            <fieldset style="width: 70%; margin-left: 4px;">
-                <legend>Códigos HASH</legend>
-                <label>SHA-1</label>
-                <input id="sha1" type="text" size="80" style="margin-left: 30px;" readonly>
-                <br>
-                <label>SHA-256</label>
-                <input id="sha256" type="text" type="text" size="80" style="margin-left: 15px;" readonly>
-                <br>
-                <p id="se_dois"></p>
-                <p id="se_tres"></p>
-                <p id="se_quatro"></p>
-            </fieldset>
-            <p>
-                <label>Duração do vídeo:</label>
-                <input id="min" type="text" size="1" style="text-align: center;" placeholder="min">
-                :<input id="seg" type="text" size="1" style="text-align: center" ; placeholder="seg">
-            </p>
-            <span id="limpar" style="cursor: pointer; color: blue;">
-                &#128196<u>Limpar dados de vídeo</u>
-            </span>
-        </fieldset>
+        
+            
     </div><br>
+
+
+
+
+
     <!--Botão de gravar formulário-->
     <center>
         <button id="sbmt" type="button" value="Gravar"

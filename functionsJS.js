@@ -193,7 +193,7 @@ function geraprevia() {
 
 function limpaDados() {
     document.getElementById("entnome").value = "";
-    document.getElementById("entrg").value = "";
+    // document.getElementById("entrg").value = "";
     document.getElementById("entcin").value = "";
     document.getElementById("entnasc").value = "";
     document.getElementById("entidade").value = "";

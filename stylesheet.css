@@ -3,10 +3,58 @@ body {
     background: linear-gradient(black, rgb(110, 63, 2), rgb(141, 96, 0), rgb(255, 255, 94) 1200px);
 }
 
+/* NAVBAR */
+.navbar-topo {
+    position:relative;
+    top: 0;
+    width: 100%;
+    background: #111;
+    z-index: 1000;
+}
+
+.menu {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    padding: 12px 0;
+}
+
+.menu li {
+    margin: 0 15px;
+}
+
+.menu a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 15px;
+}
+
+.menu a:hover {
+    border-bottom: 2px solid #fff;
+}
+
+.menu li:not(:last-child)::after {
+    content: "|";
+    color: #fff;
+    margin-left: 15px;
+}
+
+.menu li {
+    margin-right: 1px;
+}
+
+
 h1 {
+    align-items: center;
+    margin: auto;   
+    border: none solid white;
+    width: 50%;
+    text-align: center;
     color: rgb(209, 204, 204);
     padding-top: 5%;
-    padding-left: 39%;
+    padding: 1%;    
+    margin-bottom: 3%;    
 }
 
 @keyframes piscar {
@@ -46,11 +94,6 @@ fieldset#titulo {
 
 }
 
-h1 {
-    padding: 1%;
-    padding-left: 27%;
-    margin-left: 0.1cm;
-}
 
 #preview-canvas {
     display: inline-block;
