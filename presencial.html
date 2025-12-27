@@ -30,7 +30,8 @@
         gtag('config', 'G-1VLEXN0EXW');
     </script>
 
-    <script src="./functionsJS.js"></script>
+    <script src="./functionsPresencial.js"></script>
+    
 
 <body>
 
@@ -39,10 +40,10 @@
         <ul class="menu">
             <li><a href="index.html">Oitivas Audiovisuais</a></li>
             <li><a href="presencial.html">Oitivas Escritas</a></li>
-           
+
         </ul>
     </nav>
-    
+
     <h1 style="color: chartreuse;">Obs: Em desenvolvimento (funcionalidade ainda não disponível)</h1>
 </body>
 
@@ -325,18 +326,33 @@
     <!-- Aqui, neste forms, é dados de Declaração -->
     <div id="dados_gravacao">
         <fieldset id="fs_3">
+            <strong>Local da Oitiva</strong>
+            <br>
+            <label>Estado:</label>
+            <select id="estado">
+                <option value="">Selecione o estado</option>
+            </select>
+            <br>
+            <label>Cidade:</label>
+            <select id="cidade" disabled>
+                <option value="">Selecione a cidade</option>
+            </select>
+            <br>
+            
+            <script src="./carregaCidadesIbge.js"></script>
+
+            <label for="loc_oitiva">Local da oitiva: </label>
+            <input type="text" id="loc_oitiva" placeholder="ex: Sala do Cartório do 6º BPM" size="30">
+            <br>
+            <br>
             <label>
                 <strong>Declaração:</strong>
                 <br>
                 <textarea id="depoimento_txt" style="width: 805px; height: 400px; align-items: center;"></textarea>
             </label>
-        
-            
+
+
     </div><br>
-
-
-
-
 
     <!--Botão de gravar formulário-->
     <center>
