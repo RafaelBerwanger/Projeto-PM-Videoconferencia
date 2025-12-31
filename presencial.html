@@ -326,8 +326,7 @@
     <!-- Aqui, neste forms, é dados de Declaração -->
     <div id="dados_gravacao">
         <fieldset id="fs_3">
-            <strong>Local da Oitiva</strong>
-            <br>
+            <h3>Dados da Oitiva</h3>
             <label>Estado:</label>
             <select id="estado">
                 <option value="">Selecione o estado</option>
@@ -337,14 +336,47 @@
             <select id="cidade" disabled>
                 <option value="">Selecione a cidade</option>
             </select>
-            <br>
-            
+            <br>          
+              <!--Script para puxar dados de cidade do IBGE  -->
             <script src="./carregaCidadesIbge.js"></script>
 
             <label for="loc_oitiva">Local da oitiva: </label>
             <input type="text" id="loc_oitiva" placeholder="ex: Sala do Cartório do 6º BPM" size="30">
             <br>
+
+
+
+             <label>Início </label>
+            <input id="entinicio" type="time">
+            <label>Término </label>
+            <input id="entfim" type="time">
             <br>
+
+
+            <label>Advogado presente ?</label>
+            <span style="color: red;">*</span>
+            <br>
+            <input name="ent_adv" type="radio" value="sim" onclick="adv_presente()">
+            Sim
+            <input name="ent_adv" type="radio" value="nao" onclick="adv_presente()">
+            Não
+            <label id="adv"></label>
+            <br>
+            <label>Houve alguma alteração durante a gravação do depoimento ?</label>
+            <span style="color: red;">*</span>
+            <br>
+            <input name="ent_alt" type="radio" value="sim" onclick="func_alteracao()">
+            Sim (especifique)
+            <input name="ent_alt" type="radio" value="nao" onclick="func_alteracao()">
+            Não
+            <br>
+            <label id="texto_alt"></label>
+            <br>
+
+
+
+
+
             <label>
                 <strong>Declaração:</strong>
                 <br>

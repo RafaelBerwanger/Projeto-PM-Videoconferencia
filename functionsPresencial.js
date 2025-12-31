@@ -99,39 +99,6 @@ function insereEscriba() {
     }
 }
 
-//Funcao para formatar data
-function formatar() {
-    // Captura a data do input
-    let datagrav = document.getElementById("datagrav").value;
-
-    if (!datagrav) {
-        console.error("Erro: Nenhuma data foi informada.");
-        return;
-    }
-
-    // Criar a data sem influência de fuso horário
-    let date = new Date(datagrav + "T00:00:00");
-
-    // Adiciona um dia corretamente
-    date.setUTCDate(date.getUTCDate());
-
-    let date_dia = date.getUTCDate();
-    let date_mes = date.getUTCMonth();
-    let date_ano = date.getUTCFullYear();
-
-    // Nomes dos meses
-    const meses = [
-        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-    ];
-
-    // Exibe a data formatada
-    let resultado_data = `Aos ${date_dia} dias do mês de ${meses[date_mes]} do ano de ${date_ano}`;
-    console.log(resultado_data);
-
-    return resultado_data;
-}
-
 //Funcao para o usuário marcar alterações durante depoimento
 function func_alteracao() {
     valor_alt = document.querySelector('input[name="ent_alt"]:checked').value
@@ -144,7 +111,6 @@ function func_alteracao() {
     else if (valor_alt === "nao") {
         document.getElementById("texto_alt").innerHTML = ""
         alteracao = "SEM ALTERAÇÕES SUBSTANCIAIS."
-
     }
 
 }
@@ -182,28 +148,18 @@ function sbmt1() {
     complemento = document.getElementById("entcomp").value
     municipio = document.getElementById("entmun").value
     estado = document.getElementById("entest").value
-    // datagrav = document.getElementById("datagrav").value
-    // inicgrav = document.getElementById("entinicio").value
-    // termgrav = document.getElementById("entfim").value
     num_proc = document.getElementById("ent_num_proc").value
     nome_procedimento = document.getElementById("ent_proc").value
     qualidade = document.getElementById("ent_qualidade").value
     presta_compromisso = document.getElementById("ent_comp").value
-    cid_oitiva = document.getElementById("id_cidade").value
-    est_oitiva = document.getElementById("est_oitiva").value
+    cid_oitiva = document.getElementById("cidade").value
+    est_oitiva = document.getElementById("estado").value
     loc_oitiva = document.getElementById("loc_oitiva").value
-    resultado_data = formatar();
-
-
     //Dados do Escriba (se houver)
     nome_esc = document.getElementById("entnome_esc").value
     cin_esc = "XXX." + (document.getElementById("entcin_esc").value).slice(-10, -2) + "XX"
     posto_esc = document.getElementById("ent_posto_esc").value
     quadro_esc = document.getElementById("quadro_esc").value
-
-    min = document.getElementById("min").value
-    seg = document.getElementById("seg").value
-    time = `${min} minutos e ${seg} segundos`
     document.getElementById("btnconf").style.display = "";
     document.getElementById("mostradados").innerHTML = `<p><center>IMPORTANTE: Esse programa é derivado de um desenvolvimento INDEPENDENTE, criado para auxiliar na elaboração de relatórios de gravação audiovisual. Seu uso não dispensa a conferência que o encarregado deve fazer sobre os documentos.</center></p>`
 }
