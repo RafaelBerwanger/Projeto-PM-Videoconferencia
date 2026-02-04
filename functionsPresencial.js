@@ -59,12 +59,19 @@ const dataPadraoOficial = `Aos ${diaParaExtenso(diaNum)} dias do mês de ${mesEx
  * Função de Desenho pelo HTML
  */
 function gerarPDF(d) {
+    // 1. Em vez de display: none, escondemos por posição para o Mobile não ignorar
     const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = 'none';
+
     document.body.appendChild(iframe);
     const doc = iframe.contentWindow.document;
 
-   doc.write(`
+    doc.write(`
     <html>
     <head>
         <style>
@@ -120,7 +127,7 @@ function gerarPDF(d) {
 
         <div class="conteudo">
             <div class="paragrafo">
-                ${d.oitiva.cidade}, ${dataPadraoOficial}. Compareceu...
+                ${d.oitiva.cidade}, ${dataPadraoOficial}, compareceu...
             </div>
             </div>
     </body>
@@ -129,13 +136,23 @@ function gerarPDF(d) {
 
     doc.close();
 
-    iframe.contentWindow.onload = function () {
+
+    // 2. CELULAR: Garantir o carregamento e foco absoluto
+    iframe.contentWindow.onload = function() {
+        // Pequena pausa para o SO do celular processar o HTML interno
         setTimeout(() => {
             iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-            document.body.removeChild(iframe);
-        }, 600);
+            
+            // Tenta imprimir o conteúdo do iframe
+            const success = iframe.contentWindow.print();
+            
+            // Se o navegador for mobile, ele pode bloquear a remoção imediata
+            // do iframe antes da caixa de diálogo fechar.
+            setTimeout(() => document.body.removeChild(iframe), 2000);
+        }, 500);
     };
+
+
 }
 
 //FUNCAO ANTIGA
