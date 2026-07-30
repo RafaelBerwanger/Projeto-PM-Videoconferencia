@@ -155,6 +155,71 @@ function gerarPDF(d) {
 
 }
 
+function adv_presente() {
+    adv_var = document.querySelector('input[name="ent_adv"]:checked').value
+
+    if (adv_var === "sim") {
+
+        document.getElementById("adv").innerHTML = `<br>
+        <input id="nome_adv" type="text" size="30" placeholder="nome do defensor" onchange="inc_adv()"></input><br>
+        <input id="oab_adv" type="text" size="7" placeholder="nº OAB" onchange="inc_adv()"></input>
+        <input id="est_oab" type="text" size="2" placeholder="UF" onchange="inc_adv()"></input>
+            `
+    }
+    else if (adv_var === "nao") {
+        document.getElementById("adv").innerHTML = " "
+        advogado_resposta = "Parte não representada por advogado/defensor"
+
+    }
+}
+
+//Função para integrar variável de costumes
+function inc_cost() {
+    costumes_campo = document.getElementById("costumes_campo").value
+    document.getElementById("p_texto").value = costumes_campo;
+
+}
+
+function func_cost() {
+    //funcao para selecionar costumes (com e sem campo)
+
+    costume = document.querySelector('input[name="ent_cost"]:checked').value;
+
+    if (costume === "sim") {
+
+        document.getElementById("p_texto").innerHTML = `
+        <textarea id="costumes_campo" rows="10" cols="35" maxlength="200" onkeyup="inc_cost()"></textarea> <br> 
+        `
+    }
+    else if (costume === "nao") {
+        document.getElementById("p_texto").innerHTML = " "
+        costumes_campo = "nada disse"
+    }
+
+}
+
+//Função Máscara de Telefone
+function aplicarMascaraTelefone() {
+    var telefone = document.getElementById("telef").value;
+    telefone = telefone.replace(/\D/g, "");
+    if (telefone.length > 10) {
+        telefone = telefone.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+    } else {
+        telefone = telefone.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+    }
+    document.getElementById("telef").value = telefone;
+}
+
+
+
+
+
+
+
+
+
+
+
 //FUNCAO ANTIGA
 function gerarPDFss(d) {
     const doc = new jsPDF('p', 'mm', 'a4');

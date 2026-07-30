@@ -32,7 +32,7 @@
     </nav>
 
     <h1 style="color: chartreuse;">Obs: Em desenvolvimento (funcionalidade ainda não disponível)</h1>
-    
+
     <header>
         <div id="imgs_cab">
             <img style="border-radius: 15px" src="img/parana.jpg" align="right" width="100px">
@@ -103,6 +103,24 @@
                 <select id="opm">
                     <option value="6º BATALHÃO DE POLÍCIA MILITAR" selected>6º BPM</option>
                 </select>
+                <br>
+                <label>Cidade da Oitiva:</label>
+                <input id="id_cidade" type="text" value="Cascavel" size="10">
+                <label>Estado(UF) oitiva: </label>
+                <input id="est_oitiva" type="text" size="2" maxlength="2" value="PR">
+                <label>Local da Oitiva: </label>
+                <input id="loc_oitiva" type="text" value="Sexto Batalhão de Polícia Militar" size="30">
+                <br>
+                <label>Advogado presente ?</label>
+                <span style="color: red;">*</span>
+                <br>
+                <input name="ent_adv" type="radio" value="sim" onclick="adv_presente()">
+                Sim
+                <input name="ent_adv" type="radio" value="nao" onclick="adv_presente()">
+                Não
+                <label id="adv"></label>
+                <br>
+
 
                 <br><br>
                 <span id="escriba" style="cursor: pointer; color: blue;" onclick="insereEscriba()">
@@ -136,6 +154,22 @@
 
                 <label>Idade:</label>
                 <input id="entidade" type="number" style="width: 50px;">
+                <br>
+                <label>Presta compromisso legal de dizer a verdade ? </label>
+                    <select id="ent_comp">
+                        <option value="sim">Sim</option>
+                        <option value="nao">Não</option>
+                    </select>
+<br>
+<label>costumes:</label>
+            <input name="ent_cost" type="radio" value="sim" onclick="func_cost()">
+            Sim
+            <input name="ent_cost" type="radio" value="nao" onclick="func_cost()">
+            Não (nada disse) 
+
+            <span style="color: red;">*</span>
+            
+                <p id="p_texto"></p>
 
                 <fieldset id="filiacao" style="margin-top: 10px;">
                     <legend>Filiação</legend>
@@ -146,12 +180,40 @@
                 <label>Telefone:</label>
                 <input id="telef" type="text" onkeyup="aplicarMascaraTelefone()">
 
-                <div id="endereco" style="margin-top: 10px;">
-                    <label>Endereço:</label>
-                    <input id="entrua" placeholder="Rua" size="30">
-                    <input id="entnumero" placeholder="Nº" style="width: 50px;">
-                    <input id="entmun" placeholder="Cidade">
-                </div>
+ <br>
+            <label>Profissão: </label>
+            <input id="prof" type="text" size="13" maxlength="20" placeholder="ex: Policial Militar">
+            <br>
+            <label>Escolaridade: </label>
+            <select id="escol">
+                <option value="Ensino fundamental incomp.">Ensino fundamental incompleto</option>
+                <option value="Ensino fundamental completo">Ensino fundamental completo</option>
+                <option value="Ensino médio incompleto">Ensino médio incompleto</option>
+                <option value="Ensino médio completo">Ensino médio completo</option>
+                <option value="Ensino superior incompleto">Ensino superior incompleto</option>
+                <option value="Ensino superior completo">Ensino superior completo</option>
+                <option value="Não informado" selected="">Não informado</option>
+            </select>
+            <br>
+            <fieldset style="width: 55%; margin-left: 15px;">
+                <legend>Endereço</legend>
+                <input id="entrua" type="text" size="34" placeholder="Rua / Avenida">
+                <br>
+                <input id="entnumero" type="number" min="1" max="999999" placeholder="Numeral">
+                <br>
+                <input id="entbairro" type="text" size="14" placeholder="Bairro">
+                <br>
+                <input id="entcomp" type="text" size="14" placeholder="Complemento">
+                <br>
+                <input id="entmun" type="text" size="14" placeholder="Município">
+                <br>
+                <input id="entest" type="text" size="2" placeholder="UF">
+                <br>
+            </fieldset>
+            <span id="limparDepo" style="cursor: pointer; color: blue;" onclick="limpaDados()">
+                &#128196<u>Limpar dados
+                    do depoente</u>
+            </span>
             </fieldset>
         </div>
 
@@ -167,8 +229,7 @@
         </div>
 
         <center style="margin-top: 20px;">
-            <button id="sbmt" type="button"
-                style="cursor: pointer; background-color: chartreuse; font-weight: bold;"
+            <button id="sbmt" type="button" style="cursor: pointer; background-color: chartreuse; font-weight: bold;"
                 onclick="sbmt1(); confirmar();">
                 Imprimir
             </button>
