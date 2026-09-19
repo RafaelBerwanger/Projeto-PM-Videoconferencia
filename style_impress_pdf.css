@@ -1,0 +1,72 @@
+@media print {
+    @page {
+        size: A4;
+        margin-bottom: 2cm;
+    }
+
+    body {
+        margin: 0;
+        padding: 25mm 20mm 25mm 30mm;
+    }
+}
+
+body {
+    font-family: Arial, sans-serif;
+    font-size: 12pt;
+    line-height: 1.5;
+    text-align: justify;
+}
+
+/* Container do Cabeçalho com Imagens */
+.cabecalho-container {
+    display: flex;
+    justify-content: space-between;
+    /* Empurra um para cada lado */
+    align-items: center;
+    margin-bottom: 30px;
+    width: 100%;
+}
+
+.titulo-termo {
+    padding: 10%;
+    text-align: center;
+}
+
+.logo-topo {
+    height: 25mm;
+    /* Altura fixa para manter simetria */
+    width: auto;
+}
+
+.texto-central {
+    text-align: center;
+    font-weight: bold;
+    flex-grow: 1;
+    /* Faz o texto ocupar o centro */
+    font-size: 12pt;
+    text-transform: uppercase;
+}
+
+.paragrafo {
+    margin-bottom: 20px;
+}
+
+.assinaturas {
+    padding: 7%;
+}
+
+.assinantes {
+    /* Impede que o conteúdo dentro desta div seja cortado entre páginas */
+    break-inside: avoid;
+    page-break-inside: avoid;
+    /* Compatibilidade com navegadores antigos */
+
+    /* Garante um respiro no topo se a div for para a página 2 */
+        margin-top: 10%;
+
+    margin-bottom: 10mm;
+    /* Espaço entre uma assinatura e outra */
+    text-align: center;
+    /* Geralmente assinaturas são centralizadas */
+}
+

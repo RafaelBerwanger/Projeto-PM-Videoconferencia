@@ -1,0 +1,56 @@
+/* --- MODAL DO CHECKLIST --- */
+.modal-checklist {
+  display: none;
+  position: fixed !important;
+  z-index: 10000 !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: auto !important;
+  background-color: rgba(0, 0, 0, 0.6) !important;
+}
+
+.modal-checklist .modal-content {
+  color: #333333 !important;
+  background-color: #ffffff !important;
+  overflow-y: auto !important;
+  margin: 5% auto !important;
+  padding: 20px !important;
+  border-radius: 6px !important;
+  width: 90% !important;
+  max-width: 500px !important;
+  text-align: left !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid #cccccc !important;
+}
+
+.modal-checklist .close {
+  color: #aaaaaa !important;
+  float: right !important;
+  font-size: 24px !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+}
+
+.modal-checklist .close:hover,
+.modal-checklist .close:focus {
+  color: #000000 !important;
+  text-decoration: none !important;
+}
+
+.modal-checklist .checklist-item {
+  margin: 10px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 13px !important;
+  color: #333333 !important;
+}
+
+.modal-checklist .checklist-item input[type="checkbox"] {
+  width: 16px !important;
+  height: 16px !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+}

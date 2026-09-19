@@ -45,9 +45,6 @@ function aplicarMascaraTelefone() {
 }
 
 
-
-
-
 //Função Máscara de CPF
 function aplicarMascaraCPF(input) {
     let cpf = input.value;
@@ -379,9 +376,8 @@ function adv_presente() {
             `
     }
     else if (adv_var === "nao") {
-        document.getElementById("adv").innerHTML = " "
+        document.getElementById("adv").innerHTML = ""
         advogado_resposta = "Parte não representada por advogado/defensor"
-
     }
 }
 

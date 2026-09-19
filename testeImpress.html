@@ -1,0 +1,84 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="style_impress_pdf.css">
+</head>
+
+<body>
+    <div class="cabecalho-container">
+        <img src="img/brasao-pr.png" class="logo-topo">
+
+        <div class="texto-central">
+            ESTADO DO PARANÁ<br>
+            POLÍCIA MILITAR<br>
+            ${d.encarregado.opm}
+        </div>
+
+
+        <img src="img/logo.png" class="logo-topo">
+    </div>
+
+    <div class="titulo-termo">
+        <span style="font-weight: bold; text-decoration: underline;">TERMO DE INQUIRIÇÃO DE TESTEMUNHA</span>
+        <br>
+        <span>(1º Ten. QOPM Wellington Miqueias Bastos/RG 9.763.288-0)</span>
+    </div>
+
+    <div class="conteudo">
+        <div class="paragrafo">
+            ${dataPadraoOficial}, nesta cidade de ${d.oitiva.cidade}, Estado do Paraná, Bairro Centro, sito a
+            ${d.oitiva.endereco}, na(o) ${d.oitiva.local}, onde se encontrava presente o Encarregado,
+            ${d.encarregado.posto} ${d.encarregado.nome}, CPF inscrito sob nº ${d.encarregado.cpf}, Encarregado do
+            ${d.encarregado.procedimento} nº ${d.encarregado.num} ${textoAdvogado},
+
+            às 11h30min, compareceu o 1º Ten. QOPM Wellington Miqueias
+            Bastos/RG 9.763.288-0, filho de Reni José Bastos e de Maria Ramos de Melo Bastos, natural de Curitiba - PR,
+            Estado do Paraná, estado civil solteiro, nascido aos 15 de abril de 1988, nacionalidade brasileira, de
+            profissão Policial Militar, em Cascavel-PR, residente na Rua Engenheiro Teodoro Sampaio, nº 261, Parque São
+            Paulo, na cidade de Cascavel, Estado do Paraná, sem qualquer tipo de constrangimento, coação física ou
+            moral, e na qualidade de testemunha, aos costumes nada disse, prestando o compromisso de dizer a verdade
+            prometeu dizer a verdade sobre os fatos que deram origem ao presente FATD, perguntado sobre a situação a
+            respeito dos fatos geradores do presente procedimento, passou a declarar: Que compareceu...
+        </div>
+    </div>
+
+    <div class="fecho">
+
+        E, como nada mais disse e nem foi perguntado pelo sindicante, deu-se por encerrado o presente termo às 12h35min
+        depois de ter sido lido achado conforme, vai devidamente assinado.
+    </div>
+    <br>
+    <div class="assinaturas">
+        <div class="assinantes">
+            1º Ten. QOPM André Fritzsche Fernandes, RG: 8.777.270-5,
+            <br>
+            <b>Encarregado do FATD.</b>
+        </div>
+        <br>
+        <div class="assinantes">
+            1º Ten. QOPM Wellington Miqueias Bastos/RG 9.763.288-0,
+            <br>
+            <b>Testemunha</b>.
+        </div>
+        <br>
+
+
+        ${temAdvogado ? `<div class="assinantes"></div> ${d.oitiva.advogado.nome}<br>
+        <strong>Advogado</strong>
+    </div>` : ''}
+
+    <br>
+
+    </div>
+    </div>
+</body>
+<script>
+    /*     // Dispara a impressão assim que tudo (incluindo imagens e CSS) carregar
+        window.onload = function () {
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        }; */
+</script>
+
+</html>

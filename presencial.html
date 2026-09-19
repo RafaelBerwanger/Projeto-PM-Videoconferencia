@@ -5,184 +5,411 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>★ Auxiliar de Oitivas Escritas</title>
+    <title>Auxiliar de Oitivas Escritas - Intranet PMPR</title>
     <link rel="icon" href="img/favicon.ico" type="image/x-icon">
 
-    <link rel="stylesheet" href="stylesheet.css">
-    <link rel="stylesheet" href="stylesheet_auxilio.css">
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Ficheiros CSS da Intranet PMPR -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style_auxilio.css">
+
+    <!-- Bibliotecas JS e Scripts do Sistema -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.2/dist/FileSaver.min.js"></script>
-    <!--     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.4.1/jspdf.debug.js"></script>
- -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment-with-locales.min.js"></script>
 
     <script src="./functionsPresencial.js"></script>
     <script src="./carregaCidadesIbge.js"></script>
-    <script src="./auxilio.js"></script>
 </head>
 
 <body>
-    <nav class="navbar-topo">
-        <ul class="menu">
-            <li><a href="index.html" style="font-weight: bold;">Oitivas Audiovisuais</a></li>
-            <li><a href="presencial.html" style="font-weight: bold; color: chartreuse;">Oitivas Escritas</a></li>
-        </ul>
-    </nav>
 
-    <h1 style="color: chartreuse;">Obs: Em desenvolvimento (funcionalidade ainda não disponível)</h1>
-    
-    <header>
-        <div id="imgs_cab">
-            <img style="border-radius: 15px" src="img/parana.jpg" align="right" width="100px">
-            <img src="img/logo.png" align="left" width="80px" height="100px">
+    <!-- BARRA LATERAL DA INTRANET PMPR -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="img/logo.png" alt="Logo PMPR" class="sidebar-logo">
+            <span>Ajuda do Encarregado</span>
         </div>
-        <fieldset id="titulo">
-            <h1>Oitivas Escritas</h1>
-        </fieldset>
-    </header>
+        
+        <div class="sidebar-title">OITIVAS</div>
+        
+        <a href="index.html" class="menu-item">
+            <i class="fa-solid fa-video"></i>
+            <span>Oitivas Audiovisuais</span>
+        </a>
+        <a href="presencial.html" class="menu-item active">
+            <i class="fa-solid fa-file-pen"></i>
+            <span>Oitivas Escritas</span>
+        </a>
+    </div>
 
-    <form id="formOitiva">
-        <div id="dados_encarregado">
-            <fieldset id="fs_1">
-                <h3>Dados do Encarregado:</h3>
-                <label for="entnome_enc">Nome:</label>
-                <input id="entnome_enc" type="text" size="34" placeholder="Nome do Encarregado">
-
-                <label for="entcni_enc">CPF/CIN:</label>
-                <input id="entcni_enc" type="text" size="14" maxlength="14" placeholder="000.000.000-00"
-                    onkeyup="aplicarMascaraCPF(this)">
-
-                <label for="ent_posto">Posto/Graduação:</label>
-                <select id="ent_posto">
-                    <option value="Coronel">Coronel</option>
-                    <option value="Tenente-Coronel">Tenente-Coronel</option>
-                    <option value="Major">Major</option>
-                    <option value="Capitão">Capitão</option>
-                    <option value="1º Tenente">1º Tenente</option>
-                    <option value="2º Tenente">2º Tenente</option>
-                    <option value="Asp.">Asp. PM</option>
-                    <option value="Subtenente">Subtenente</option>
-                    <option value="1º Sargento">1º Sargento</option>
-                    <option value="2º Sargento">2º Sargento</option>
-                    <option value="3º Sargento" selected>3º Sargento</option>
-                    <option value="Cabo">Cabo</option>
-                    <option value="Soldado">Soldado</option>
-                </select>
-
-                <label for="quadro_enc">Quadro:</label>
-                <select id="quadro_enc">
-                    <option value="QP PM">QP PM</option>
-                    <option value="QOEM PM">QOEM PM</option>
-                    <option value="PM">Sem quadro</option>
-                </select>
-                <br><br>
-
-                <label>Procedimento:</label>
-                <select id="ent_proc">
-                    <option value="IPM">IPM</option>
-                    <option value="FATD">FATD</option>
-                    <option value="SINDICÂNCIA">SINDICÂNCIA</option>
-                    <option value="APFD">APFD</option>
-                    <option value="CD/CJ">CD/CJ</option>
-                    <option value="ADL">ADL</option>
-                    <option value="Inquérito Técnico">IT</option>
-                </select>
-
-                <label>Número:</label>
-                <input id="ent_num_proc" placeholder="Ex: 001/2024">
-
-                <label for="crpm">CRPM:</label>
-                <select id="crpm">
-                    <option value="1º COMANDO REGIONAL DE POLÍCIA MILITAR">1º</option>
-                    <option value="5º COMANDO REGIONAL DE POLÍCIA MILITAR" selected>5º</option>
-                </select>
-
-                <label for="opm">| OPM:</label>
-                <select id="opm">
-                    <option value="6º BATALHÃO DE POLÍCIA MILITAR" selected>6º BPM</option>
-                </select>
-
-                <br><br>
-                <span id="escriba" style="cursor: pointer; color: blue;" onclick="insereEscriba()">
-                    👤 <u>Inserir Escrivão</u>
-                </span>
-
-                <div id="abre_escriba" style="display:none; margin-top: 10px;">
-                    <label for="entnome_esc">Nome Escrivão:</label>
-                    <input id="entnome_esc" type="text" size="34">
-                    <label for="entcin_esc">CPF:</label>
-                    <input id="entcin_esc" type="text" size="14" maxlength="14" onkeyup="aplicarMascaraCPF(this)">
-                </div>
-            </fieldset>
-        </div>
-
-        <div id="dados_depoente">
-            <fieldset id="fs_2">
-                <h3>Dados do Depoente:</h3>
-                <label>Qualidade:</label>
-                <select id="ent_qualidade">
-                    <option value="Testemunha">Testemunha</option>
-                    <option value="Acusado">Acusado</option>
-                    <option value="Vítima">Vítima</option>
-                </select>
-
-                <label>Nome:</label>
-                <input id="entnome" type="text" size="34">
-
-                <label>Nascimento:</label>
-                <input id="entnasc" type="date" onchange="pegaidade()">
-
-                <label>Idade:</label>
-                <input id="entidade" type="number" style="width: 50px;">
-
-                <fieldset id="filiacao" style="margin-top: 10px;">
-                    <legend>Filiação</legend>
-                    Mãe: <input id="entmae" type="text" size="30">
-                    Pai: <input id="entpai" type="text" size="30">
-                </fieldset>
-
-                <label>Telefone:</label>
-                <input id="telef" type="text" onkeyup="aplicarMascaraTelefone()">
-
-                <div id="endereco" style="margin-top: 10px;">
-                    <label>Endereço:</label>
-                    <input id="entrua" placeholder="Rua" size="30">
-                    <input id="entnumero" placeholder="Nº" style="width: 50px;">
-                    <input id="entmun" placeholder="Cidade">
-                </div>
-            </fieldset>
-        </div>
-
-        <div id="dados_gravacao">
-            <fieldset id="fs_3">
-                <h3>Corpo do Termo</h3>
-                <label>Início:</label> <input id="entinicio" type="time">
-                <label>Término:</label> <input id="entfim" type="time">
-                <br><br>
-                <label><strong>Declaração / Depoimento:</strong></label><br>
-                <textarea id="depoimento_txt" style="width: 98%; height: 300px; margin-top: 10px;"></textarea>
-            </fieldset>
-        </div>
-
-        <center style="margin-top: 20px;">
-            <button id="sbmt" type="button"
-                style="cursor: pointer; background-color: chartreuse; font-weight: bold;"
-                onclick="sbmt1(); confirmar();">
-                Imprimir
-            </button>
-            <p id="btnconf"></p>
-        </center>
-    </form>
-
-    <footer>
-        <center>
-            <div style="font-style: italic; margin-top: 2cm;" id="rodape">
-                By 2º Sgt. Rafael A. Berwanger, 3ª EsFAEP/APMG
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div class="main-wrapper">
+        
+        <!-- NAV SUPERIOR -->
+        <div class="top-nav" style="display: none;">
+            <div class="top-nav-left">
+                <i class="fa-solid fa-bars"></i>
+                <a href="#">Administração</a>
+                <a href="#">Boletins</a>
+                <a href="#">Sistemas</a>
             </div>
-        </center>
-    </footer>
+            <div class="top-nav-right">
+                <span class="badge-email"><i class="fa-regular fa-envelope"></i> Emails</span>
+                <i class="fa-regular fa-bell" style="color:#666;"></i>
+                <div class="user-profile">
+                    <div class="user-avatar"><i class="fa-solid fa-user"></i></div>
+                    <span>Rafael Andreas Berwanger</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- BANNER DE TÍTULO DA PÁGINA -->
+        <div class="page-banner">
+            <i class="fa-solid fa-file-pen"></i> Auxiliar de Oitivas Escritas
+        </div>
+
+        <div class="content-area">
+
+            <!-- ALERTA DE DESENVOLVIMENTO -->
+            <div class="alert-dev" style="font-size: 20px; color: brown;">
+                <i class="fa-solid fa-triangle-exclamation"></i> <strong>Aviso:</strong> Módulo em desenvolvimento (funcionalidade ainda não disponível totalmente).
+            </div>
+
+            <form id="formOitiva">
+                
+                <!-- SEÇÃO 1: DADOS DO ENCARREGADO -->
+                <div class="card" id="dados_encarregado">
+                    <div class="block-title">
+                        <i class="fa-solid fa-user-gear"></i> Dados do Encarregado
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group col-6">
+                            <label for="entnome_enc">Nome:</label>
+                            <input id="entnome_enc" type="text" class="form-control" placeholder="Nome do Encarregado">
+                        </div>
+
+                        <div class="form-group col-3">
+                            <label for="entcni_enc">CPF/CIN:</label>
+                            <input id="entcni_enc" type="text" class="form-control" maxlength="14" placeholder="000.000.000-00" onkeyup="aplicarMascaraCPF(this)">
+                        </div>
+
+                        <div class="form-group col-3">
+                            <label for="ent_posto">Posto/Graduação:</label>
+                            <select id="ent_posto" class="form-control">
+                                <option value="Coronel">Coronel</option>
+                                <option value="Tenente-Coronel">Tenente-Coronel</option>
+                                <option value="Major">Major</option>
+                                <option value="Capitão">Capitão</option>
+                                <option value="1º Tenente">1º Tenente</option>
+                                <option value="2º Tenente">2º Tenente</option>
+                                <option value="Asp.">Asp. PM</option>
+                                <option value="Subtenente">Subtenente</option>
+                                <option value="1º Sargento">1º Sargento</option>
+                                <option value="2º Sargento">2º Sargento</option>
+                                <option value="3º Sargento" selected>3º Sargento</option>
+                                <option value="Cabo">Cabo</option>
+                                <option value="Soldado">Soldado</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-3">
+                            <label for="quadro_enc">Quadro:</label>
+                            <select id="quadro_enc" class="form-control">
+                                <option value="QP PM">QP PM</option>
+                                <option value="QOEM PM">QOEM PM</option>
+                                <option value="PM">Sem quadro</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-3">
+                            <label for="ent_proc">Procedimento:</label>
+                            <select id="ent_proc" class="form-control">
+                                <option value="IPM">IPM</option>
+                                <option value="FATD">FATD</option>
+                                <option value="SINDICÂNCIA">SINDICÂNCIA</option>
+                                <option value="APFD">APFD</option>
+                                <option value="CD/CJ">CD/CJ</option>
+                                <option value="ADL">ADL</option>
+                                <option value="Inquérito Técnico">IT</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-2">
+                            <label for="ent_num_proc">Número:</label>
+                            <input id="ent_num_proc" class="form-control" placeholder="Ex: 001/2024">
+                        </div>
+
+                        <div class="form-group col-2">
+                            <label for="crpm">CRPM:</label>
+                            <select id="crpm" class="form-control">
+                                <option value="1º COMANDO REGIONAL DE POLÍCIA MILITAR">1º</option>
+                                <option value="5º COMANDO REGIONAL DE POLÍCIA MILITAR" selected>5º</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-2">
+                            <label for="opm">OPM:</label>
+                            <select id="opm" class="form-control">
+                                <option value="6º BATALHÃO DE POLÍCIA MILITAR" selected>6º BPM</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-12">
+                            <span id="escriba" class="link-escriba" onclick="insereEscriba()">
+                                <i class="fa-solid fa-user-plus"></i> <u>Inserir Escrivão</u>
+                            </span>
+
+                            <div id="abre_escriba" class="escriba-container" style="display:none;">
+                                <div class="form-grid">
+                                    <div class="form-group col-8">
+                                        <label for="entnome_esc">Nome do Escrivão:</label>
+                                        <input id="entnome_esc" type="text" class="form-control" placeholder="Nome completo do escrivão">
+                                    </div>
+                                    <div class="form-group col-4">
+                                        <label for="entcin_esc">CPF do Escrivão:</label>
+                                        <input id="entcin_esc" type="text" class="form-control" maxlength="14" placeholder="000.000.000-00" onkeyup="aplicarMascaraCPF(this)">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEÇÃO 2: DADOS DO DEPOENTE -->
+                <div class="card" id="dados_depoente">
+                    <div class="block-title">
+                        <i class="fa-solid fa-user"></i> Dados do Depoente
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group col-4">
+                            <label for="ent_qualidade">Qualidade:</label>
+                            <select id="ent_qualidade" class="form-control">
+                                <option value="Testemunha">Testemunha</option>
+                                <option value="Acusado">Acusado</option>
+                                <option value="Vítima">Vítima</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-8">
+                            <label>Tipo de Depoente:</label>
+                            <div class="radio-inline-group">
+                                <label><input name="tipoDepoente_name" type="radio" value="civil" checked onclick="tipoDepoente()"> Civil</label>
+                                <label><input name="tipoDepoente_name" type="radio" value="militar" onclick="tipoDepoente()"> Militar</label>
+                                <span id="selecionaPosto"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group col-6">
+                            <label for="entnome">Nome:</label>
+                            <input id="entnome" type="text" class="form-control" placeholder="Nome do Depoente">
+                        </div>
+
+                        <div class="form-group col-3">
+                            <label for="entnasc">Nascimento:</label>
+                            <input id="entnasc" type="date" class="form-control" onchange="pegaidade()">
+                        </div>
+
+                        <div class="form-group col-3">
+                            <label for="entidade">Idade:</label>
+                            <input id="entidade" type="number" class="form-control">
+                        </div>
+
+                        <div class="form-group col-4">
+                            <label for="entcin">CPF / CNI:</label>
+                            <input id="entcin" type="text" class="form-control" maxlength="14" placeholder="000.000.000-00" onkeyup="aplicarMascaraCPF(this)">
+                        </div>
+
+                        <div class="form-group col-4">
+                            <label for="nacionalidade">Nacionalidade:</label>
+                            <input type="text" id="nacionalidade" value="brasileira" class="form-control">
+                        </div>
+
+                        <div class="form-group col-4">
+                            <label for="telef">Telefone:</label>
+                            <input id="telef" type="text" class="form-control" placeholder="(00) 00000-0000" onkeyup="aplicarMascaraTelefone()">
+                        </div>
+
+                        <!-- FILIAÇÃO -->
+                        <div class="form-group col-12">
+                            <fieldset class="inner-fieldset">
+                                <legend>Filiação</legend>
+                                <div class="form-grid">
+                                    <div class="form-group col-6">
+                                        <label for="entmae">Mãe:</label>
+                                        <input id="entmae" type="text" class="form-control" placeholder="Nome completo da mãe">
+                                    </div>
+                                    <div class="form-group col-6">
+                                        <label for="entpai">Pai:</label>
+                                        <input id="entpai" type="text" class="form-control" placeholder="Nome completo do pai">
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+
+                        <!-- NATURALIDADE IBGE -->
+                        <div class="form-group col-6">
+                            <label for="est_naturalidade">Estado (Naturalidade):</label>
+                            <select id="est_naturalidade" class="form-control" onchange="buscarCidadesIBGE(this.value, 'cidade_naturalidade')">
+                                <option value="">Carregando estados...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-6">
+                            <label for="cidade_naturalidade">Cidade (Naturalidade):</label>
+                            <select id="cidade_naturalidade" class="form-control" disabled>
+                                <option value="">Selecione o estado primeiro</option>
+                            </select>
+                        </div>
+
+                        <!-- PROFISSÃO -->
+                        <div class="form-group col-6">
+                            <label for="profissao">Profissão:</label>
+                            <input type="text" name="profissao" id="profissao" class="form-control" placeholder="Digite a ocupação">
+                        </div>
+
+                        <div class="form-group col-6">
+                            <label for="local_profissao">Local onde exerce a Profissão:</label>
+                            <input type="text" name="local_profissao" id="local_profissao" class="form-control" placeholder="Empresa / Local de trabalho">
+                        </div>
+
+                        <!-- ESTADO CIVIL -->
+                        <div class="form-group col-12">
+                            <fieldset class="inner-fieldset">
+                                <legend>Estado Civil</legend>
+                                <div class="radio-inline-group">
+                                    <label><input id="casado" name="estc" type="radio" value="Casado"> Casado</label>
+                                    <label><input id="solteiro" name="estc" type="radio" value="Solteiro"> Solteiro</label>
+                                    <label><input id="viúvo" name="estc" type="radio" value="Viúvo"> Viúvo</label>
+                                    <label><input id="convivente" name="estc" type="radio" value="Convivente"> Convivente</label>
+                                    <label><input id="divorciado" name="estc" type="radio" value="Divorciado"> Divorciado</label>
+                                    <label><input id="naoinf" name="estc" type="radio" value="Não informado" checked> Não informado</label>
+                                </div>
+                            </fieldset>
+                        </div>
+
+                        <!-- ENDEREÇO -->
+                        <div class="form-group col-12">
+                            <fieldset class="inner-fieldset">
+                                <legend>Endereço Residencial</legend>
+                                <div class="form-grid">
+                                    <div class="form-group col-8">
+                                        <label for="entrua">Rua / Avenida:</label>
+                                        <input id="entrua" type="text" class="form-control" placeholder="Logradouro">
+                                    </div>
+                                    <div class="form-group col-4">
+                                        <label for="entnumero">Número:</label>
+                                        <input id="entnumero" type="number" min="1" max="999999" class="form-control" placeholder="Numeral">
+                                    </div>
+                                    <div class="form-group col-6">
+                                        <label for="entbairro">Bairro:</label>
+                                        <input id="entbairro" type="text" class="form-control" placeholder="Bairro">
+                                    </div>
+                                    <div class="form-group col-6">
+                                        <label for="entcomp">Complemento:</label>
+                                        <input id="entcomp" type="text" class="form-control" placeholder="Complemento">
+                                    </div>
+                                    <div class="form-group col-6">
+                                        <label for="entest">Estado (Residência):</label>
+                                        <select id="entest" class="form-control" onchange="buscarCidadesIBGE(this.value, 'entmun')">
+                                            <option value="">Carregando estados...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-6">
+                                        <label for="entmun">Cidade (Residência):</label>
+                                        <select id="entmun" class="form-control" disabled>
+                                            <option value="">Selecione o estado primeiro</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- SEÇÃO 3: DADOS DA GRAVAÇÃO E DEPOIMENTO -->
+                <div class="card" id="dados_gravacao">
+                    <div class="block-title">
+                        <i class="fa-solid fa-file-signature"></i> Dados da Oitiva e Depoimento
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group col-3">
+                            <label for="est_oitiva">Estado (UF):</label>
+                            <select id="est_oitiva" class="form-control">
+                                <option value="PR">PR</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-4">
+                            <label for="cidade">Cidade da Oitiva:</label>
+                            <select id="cidade" class="form-control" disabled>
+                                <option value="">Carregando cidades...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group col-5">
+                            <label for="loc_oitiva">Local da Oitiva:</label>
+                            <input id="loc_oitiva" type="text" class="form-control" value="Sala do Cartório do Sexto Batalhão de Polícia Militar">
+                        </div>
+
+                        <div class="form-group col-12">
+                            <label for="endOitiva">Endereço do local da oitiva:</label>
+                            <input type="text" id="endOitiva" class="form-control" placeholder="Rua da Bandeira, nº 123">
+                        </div>
+
+                        <div class="form-group col-6">
+                            <label>Advogado presente? <span class="required">*</span></label>
+                            <div class="radio-inline-group">
+                                <label><input name="ent_adv" type="radio" value="sim" onclick="adv_presente()"> Sim</label>
+                                <label><input name="ent_adv" type="radio" value="nao" onclick="adv_presente()"> Não</label>
+                            </div>
+                            <div id="adv" style="margin-top: 5px;"></div>
+                        </div>
+
+                        <div class="form-group col-3">
+                            <label for="entinicio">Início:</label>
+                            <input id="entinicio" type="time" class="form-control">
+                        </div>
+
+                        <div class="form-group col-3">
+                            <label for="entfim">Término:</label>
+                            <input id="entfim" type="time" class="form-control">
+                        </div>
+
+                        <div class="form-group col-12">
+                            <label for="depoimento_txt"><strong>Declaração / Depoimento:</strong></label>
+                            <textarea id="depoimento_txt" class="form-control" rows="12" placeholder="Digite o texto transcrito do depoimento..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTÕES E AÇÕES DA PÁGINA -->
+                <div class="btn-container" style="justify-content: center;">
+                    <button id="sbmt" type="button" class="btn btn-green" onclick="sbmt1();">
+                        <i class="fa-solid fa-print"></i> Gerar e Imprimir Oitiva
+                    </button>
+                </div>
+                <div id="btnconf" style="text-align: center; margin-top: 10px;"></div>
+            </form>
+
+        </div>
+
+        <!-- RODAPÉ -->
+        <footer>
+            <div id="rodape">
+                Desenvolvido por Cad 1º PM. Rafael A. Berwanger — EsFO/APMG
+            </div>
+        </footer>
+
+    </div>
+
 </body>
 
 </html>
