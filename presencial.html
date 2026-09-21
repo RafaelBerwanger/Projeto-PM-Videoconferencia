@@ -33,9 +33,9 @@
             <img src="img/logo.png" alt="Logo PMPR" class="sidebar-logo">
             <span>Ajuda do Encarregado</span>
         </div>
-        
+
         <div class="sidebar-title">OITIVAS</div>
-        
+
         <a href="index.html" class="menu-item">
             <i class="fa-solid fa-video"></i>
             <span>Oitivas Audiovisuais</span>
@@ -48,7 +48,7 @@
 
     <!-- CONTEÚDO PRINCIPAL -->
     <div class="main-wrapper">
-        
+
         <!-- NAV SUPERIOR -->
         <div class="top-nav" style="display: none;">
             <div class="top-nav-left">
@@ -76,17 +76,18 @@
 
             <!-- ALERTA DE DESENVOLVIMENTO -->
             <div class="alert-dev" style="font-size: 20px; color: brown;">
-                <i class="fa-solid fa-triangle-exclamation"></i> <strong>Aviso:</strong> Módulo em desenvolvimento (funcionalidade ainda não disponível totalmente).
+                <i class="fa-solid fa-triangle-exclamation"></i> <strong>Aviso:</strong> Módulo em desenvolvimento
+                (funcionalidade ainda não disponível totalmente).
             </div>
 
             <form id="formOitiva">
-                
+
                 <!-- SEÇÃO 1: DADOS DO ENCARREGADO -->
                 <div class="card" id="dados_encarregado">
                     <div class="block-title">
                         <i class="fa-solid fa-user-gear"></i> Dados do Encarregado
                     </div>
-                    
+
                     <div class="form-grid">
                         <div class="form-group col-6">
                             <label for="entnome_enc">Nome:</label>
@@ -95,7 +96,8 @@
 
                         <div class="form-group col-3">
                             <label for="entcni_enc">CPF/CIN:</label>
-                            <input id="entcni_enc" type="text" class="form-control" maxlength="14" placeholder="000.000.000-00" onkeyup="aplicarMascaraCPF(this)">
+                            <input id="entcni_enc" type="text" class="form-control" maxlength="14"
+                                placeholder="000.000.000-00" onkeyup="aplicarMascaraCPF(this)">
                         </div>
 
                         <div class="form-group col-3">
@@ -163,18 +165,30 @@
                             <span id="escriba" class="link-escriba" onclick="insereEscriba()">
                                 <i class="fa-solid fa-user-plus"></i> <u>Inserir Escrivão</u>
                             </span>
+                            <div id="abre_escriba" style="display:none; margin-top: 10px;">
+                                <label for="entnome_esc">Nome Escrivão:</label>
+                                <input id="entnome_esc" type="text" size="34">
 
-                            <div id="abre_escriba" class="escriba-container" style="display:none;">
-                                <div class="form-grid">
-                                    <div class="form-group col-8">
-                                        <label for="entnome_esc">Nome do Escrivão:</label>
-                                        <input id="entnome_esc" type="text" class="form-control" placeholder="Nome completo do escrivão">
-                                    </div>
-                                    <div class="form-group col-4">
-                                        <label for="entcin_esc">CPF do Escrivão:</label>
-                                        <input id="entcin_esc" type="text" class="form-control" maxlength="14" placeholder="000.000.000-00" onkeyup="aplicarMascaraCPF(this)">
-                                    </div>
-                                </div>
+                                <label for="entcin_esc">CPF:</label>
+                                <input id="entcin_esc" type="text" size="14" maxlength="14" placeholder="000.000.000-00"
+                                    onkeyup="aplicarMascaraCPF(this)">
+
+                                <label for="ent_posto_esc">Posto/Graduação:</label>
+                                <select id="ent_posto_esc">
+                                    <option value="Coronel">Coronel</option>
+                                    <option value="Tenente-Coronel">Tenente-Coronel</option>
+                                    <option value="Major">Major</option>
+                                    <option value="Capitão">Capitão</option>
+                                    <option value="1º Tenente">1º Tenente</option>
+                                    <option value="2º Tenente">2º Tenente</option>
+                                    <option value="Asp.">Asp. PM</option>
+                                    <option value="Subtenente">Subtenente</option>
+                                    <option value="1º Sargento">1º Sargento</option>
+                                    <option value="2º Sargento">2º Sargento</option>
+                                    <option value="3º Sargento" selected>3º Sargento</option>
+                                    <option value="Cabo">Cabo</option>
+                                    <option value="Soldado">Soldado</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -199,8 +213,10 @@
                         <div class="form-group col-8">
                             <label>Tipo de Depoente:</label>
                             <div class="radio-inline-group">
-                                <label><input name="tipoDepoente_name" type="radio" value="civil" checked onclick="tipoDepoente()"> Civil</label>
-                                <label><input name="tipoDepoente_name" type="radio" value="militar" onclick="tipoDepoente()"> Militar</label>
+                                <label><input name="tipoDepoente_name" type="radio" value="civil" checked
+                                        onclick="tipoDepoente()"> Civil</label>
+                                <label><input name="tipoDepoente_name" type="radio" value="militar"
+                                        onclick="tipoDepoente()"> Militar</label>
                                 <span id="selecionaPosto"></span>
                             </div>
                         </div>
@@ -222,7 +238,8 @@
 
                         <div class="form-group col-4">
                             <label for="entcin">CPF / CNI:</label>
-                            <input id="entcin" type="text" class="form-control" maxlength="14" placeholder="000.000.000-00" onkeyup="aplicarMascaraCPF(this)">
+                            <input id="entcin" type="text" class="form-control" maxlength="14"
+                                placeholder="000.000.000-00" onkeyup="aplicarMascaraCPF(this)">
                         </div>
 
                         <div class="form-group col-4">
@@ -232,7 +249,8 @@
 
                         <div class="form-group col-4">
                             <label for="telef">Telefone:</label>
-                            <input id="telef" type="text" class="form-control" placeholder="(00) 00000-0000" onkeyup="aplicarMascaraTelefone()">
+                            <input id="telef" type="text" class="form-control" placeholder="(00) 00000-0000"
+                                onkeyup="aplicarMascaraTelefone()">
                         </div>
 
                         <!-- FILIAÇÃO -->
@@ -242,11 +260,13 @@
                                 <div class="form-grid">
                                     <div class="form-group col-6">
                                         <label for="entmae">Mãe:</label>
-                                        <input id="entmae" type="text" class="form-control" placeholder="Nome completo da mãe">
+                                        <input id="entmae" type="text" class="form-control"
+                                            placeholder="Nome completo da mãe">
                                     </div>
                                     <div class="form-group col-6">
                                         <label for="entpai">Pai:</label>
-                                        <input id="entpai" type="text" class="form-control" placeholder="Nome completo do pai">
+                                        <input id="entpai" type="text" class="form-control"
+                                            placeholder="Nome completo do pai">
                                     </div>
                                 </div>
                             </fieldset>
@@ -255,7 +275,8 @@
                         <!-- NATURALIDADE IBGE -->
                         <div class="form-group col-6">
                             <label for="est_naturalidade">Estado (Naturalidade):</label>
-                            <select id="est_naturalidade" class="form-control" onchange="buscarCidadesIBGE(this.value, 'cidade_naturalidade')">
+                            <select id="est_naturalidade" class="form-control"
+                                onchange="buscarCidadesIBGE(this.value, 'cidade_naturalidade')">
                                 <option value="">Carregando estados...</option>
                             </select>
                         </div>
@@ -270,12 +291,14 @@
                         <!-- PROFISSÃO -->
                         <div class="form-group col-6">
                             <label for="profissao">Profissão:</label>
-                            <input type="text" name="profissao" id="profissao" class="form-control" placeholder="Digite a ocupação">
+                            <input type="text" name="profissao" id="profissao" class="form-control"
+                                placeholder="Digite a ocupação">
                         </div>
 
                         <div class="form-group col-6">
                             <label for="local_profissao">Local onde exerce a Profissão:</label>
-                            <input type="text" name="local_profissao" id="local_profissao" class="form-control" placeholder="Empresa / Local de trabalho">
+                            <input type="text" name="local_profissao" id="local_profissao" class="form-control"
+                                placeholder="Empresa / Local de trabalho">
                         </div>
 
                         <!-- ESTADO CIVIL -->
@@ -284,11 +307,15 @@
                                 <legend>Estado Civil</legend>
                                 <div class="radio-inline-group">
                                     <label><input id="casado" name="estc" type="radio" value="Casado"> Casado</label>
-                                    <label><input id="solteiro" name="estc" type="radio" value="Solteiro"> Solteiro</label>
+                                    <label><input id="solteiro" name="estc" type="radio" value="Solteiro">
+                                        Solteiro</label>
                                     <label><input id="viúvo" name="estc" type="radio" value="Viúvo"> Viúvo</label>
-                                    <label><input id="convivente" name="estc" type="radio" value="Convivente"> Convivente</label>
-                                    <label><input id="divorciado" name="estc" type="radio" value="Divorciado"> Divorciado</label>
-                                    <label><input id="naoinf" name="estc" type="radio" value="Não informado" checked> Não informado</label>
+                                    <label><input id="convivente" name="estc" type="radio" value="Convivente">
+                                        Convivente</label>
+                                    <label><input id="divorciado" name="estc" type="radio" value="Divorciado">
+                                        Divorciado</label>
+                                    <label><input id="naoinf" name="estc" type="radio" value="Não informado" checked>
+                                        Não informado</label>
                                 </div>
                             </fieldset>
                         </div>
@@ -304,7 +331,8 @@
                                     </div>
                                     <div class="form-group col-4">
                                         <label for="entnumero">Número:</label>
-                                        <input id="entnumero" type="number" min="1" max="999999" class="form-control" placeholder="Numeral">
+                                        <input id="entnumero" type="number" min="1" max="999999" class="form-control"
+                                            placeholder="Numeral">
                                     </div>
                                     <div class="form-group col-6">
                                         <label for="entbairro">Bairro:</label>
@@ -316,7 +344,8 @@
                                     </div>
                                     <div class="form-group col-6">
                                         <label for="entest">Estado (Residência):</label>
-                                        <select id="entest" class="form-control" onchange="buscarCidadesIBGE(this.value, 'entmun')">
+                                        <select id="entest" class="form-control"
+                                            onchange="buscarCidadesIBGE(this.value, 'entmun')">
                                             <option value="">Carregando estados...</option>
                                         </select>
                                     </div>
@@ -356,19 +385,23 @@
 
                         <div class="form-group col-5">
                             <label for="loc_oitiva">Local da Oitiva:</label>
-                            <input id="loc_oitiva" type="text" class="form-control" value="Sala do Cartório do Sexto Batalhão de Polícia Militar">
+                            <input id="loc_oitiva" type="text" class="form-control"
+                                value="Sala do Cartório do Sexto Batalhão de Polícia Militar">
                         </div>
 
                         <div class="form-group col-12">
                             <label for="endOitiva">Endereço do local da oitiva:</label>
-                            <input type="text" id="endOitiva" class="form-control" placeholder="Rua da Bandeira, nº 123">
+                            <input type="text" id="endOitiva" class="form-control"
+                                placeholder="Rua da Bandeira, nº 123">
                         </div>
 
                         <div class="form-group col-6">
                             <label>Advogado presente? <span class="required">*</span></label>
                             <div class="radio-inline-group">
-                                <label><input name="ent_adv" type="radio" value="sim" onclick="adv_presente()"> Sim</label>
-                                <label><input name="ent_adv" type="radio" value="nao" onclick="adv_presente()"> Não</label>
+                                <label><input name="ent_adv" type="radio" value="sim" onclick="adv_presente()">
+                                    Sim</label>
+                                <label><input name="ent_adv" type="radio" value="nao" onclick="adv_presente()">
+                                    Não</label>
                             </div>
                             <div id="adv" style="margin-top: 5px;"></div>
                         </div>
@@ -385,7 +418,8 @@
 
                         <div class="form-group col-12">
                             <label for="depoimento_txt"><strong>Declaração / Depoimento:</strong></label>
-                            <textarea id="depoimento_txt" class="form-control" rows="12" placeholder="Digite o texto transcrito do depoimento..."></textarea>
+                            <textarea id="depoimento_txt" class="form-control" rows="12"
+                                placeholder="Digite o texto transcrito do depoimento..."></textarea>
                         </div>
                     </div>
                 </div>

@@ -168,10 +168,9 @@ function adv_presente() {
 
 
 /**
- * Função de Desenho pelo HTML
+ * Função de Impressão e Geração do Termo de Oitiva Escrita
  */
 function gerarPDF(d) {
-    // 1. Prepara a data por extenso (Lógica que já validamos)
     const dataOriginal = new Date();
     const diaNum = dataOriginal.getDate();
     const mesExtenso = new Intl.DateTimeFormat('pt-BR', { month: 'long' }).format(dataOriginal);
@@ -185,96 +184,121 @@ function gerarPDF(d) {
     }
     const dataPadraoOficial = `Aos ${diaParaExtenso(diaNum)} dias do mês de ${mesExtenso} de ${ano}`;
 
+    // 1. TÍTULO DINÂMICO CONFORME A QUALIDADE
+    let tituloTermo = "TERMO DE INQUIRIÇÃO DE TESTEMUNHA";
+    const qualidadeUpper = d.depoente.qualidade.toUpperCase();
 
-    //Lógica do Advogado Presente
-    // Verificamos se existe o nome do advogado e se não está vazio
+    if (qualidadeUpper.includes("ACUSADO") || qualidadeUpper.includes("SINDICADO") || qualidadeUpper.includes("AUTOR") || qualidadeUpper.includes("INDICIADO")) {
+        tituloTermo = `TERMO DE QUALIFICAÇÃO E INTERROGATÓRIO DE ${qualidadeUpper}`;
+    } else if (qualidadeUpper.includes("VÍTIMA") || qualidadeUpper.includes("OFENDIDO")) {
+        tituloTermo = `TERMO DE DECLARAÇÕES DE ${qualidadeUpper}`;
+    }
+
+    // 2. LÓGICA DO COMPROMISSO LEGAL (Lendo diretamente a Qualidade)
+    const qualidadeDepoente = d.depoente.qualidade ? d.depoente.qualidade.toUpperCase() : "";
+    let textoCompromisso = "";
+
+    // Se a qualidade for TESTEMUNHA, presta o compromisso. Caso contrário, não presta.
+    if (qualidadeDepoente.includes("TESTEMUNHA")) {
+        textoCompromisso = "prestando o compromisso legal de dizer a verdade sob as penas da lei, e aos costumes nada disse";
+    } else {
+        textoCompromisso = "deixando de prestar o compromisso legal por lei facultado, e aos costumes nada disse";
+    }
+
+    // CAPTURA DOS DADOS DO ESCRIVÃO (SE HOUVER)
+    const nomeEscrivao = gV("entnome_esc");
+    const cpfEscrivao = gV("entcin_esc");
+    const postoEscrivao = gV("ent_posto_esc");
+    const temEscrivao = nomeEscrivao && nomeEscrivao.trim() !== "";
+
+    // 3. LÓGICA DO ADVOGADO
     const temAdvogado = d.oitiva.advogado && d.oitiva.advogado.nome.trim() !== "";
     const textoAdvogado = temAdvogado
-        ? `, com a presença do advogado do acusado, Dr. ${d.oitiva.advogado.nome}, OAB nº ${d.oitiva.advogado.oab}/${d.oitiva.advogado.uf}`
-        : ", parte não representada por advogado";
+        ? `, assistido por seu advogado, Dr. ${d.oitiva.advogado.nome}, OAB nº ${d.oitiva.advogado.oab}/${d.oitiva.advogado.uf}`
+        : "";
 
-    // Abre a Nova Aba
+    // 4. TRATAMENTO DO TEXTO DO DEPOIMENTO
+    // Converte as quebras de linha digitadas no textarea para parágrafos no documento
+    const depoimentoFormatado = d.oitiva.texto
+        ? d.oitiva.texto.split('\n').map(p => p.trim()).filter(p => p.length > 0).join('<br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;')
+        : "<i>(Nenhum depoimento foi digitado)</i>";
+
+    // Abertura da Janela de Impressão
     const novaJanela = window.open('', '_blank');
 
-    // Escreve o conteúdo (Injetando o cabeçalho corrigido)
     novaJanela.document.documentElement.innerHTML = (`
-       <html>
-
-<head>
-    <link rel="stylesheet" href="style_impress_pdf.css">
-</head>
-
-<body>
-    <div class="cabecalho-container">
-        <img src="img/brasao-pr.png" class="logo-topo">
-
-        <div class="texto-central">
-            ESTADO DO PARANÁ<br>
-            POLÍCIA MILITAR<br>
-            ${d.encarregado.opm}
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <title>${tituloTermo} - ${d.depoente.nome}</title>
+        <link rel="stylesheet" href="style_impress_pdf.css">
+    </head>
+    <body>
+        <div class="cabecalho-container">
+            <img src="img/brasao-pr.png" class="logo-topo">
+            <div class="texto-central">
+                ESTADO DO PARANÁ<br>
+                POLÍCIA MILITAR<br>
+                ${d.encarregado.opm}
+            </div>
+            <img src="img/logo.png" class="logo-topo">
         </div>
 
+        <div class="titulo-termo">
+            <span style="font-weight: bold; text-decoration: underline;">${tituloTermo}</span>
+            <br>
+            <span>(${d.depoente.posto ? d.depoente.posto + ' ' : ''}${d.depoente.nome})</span>
+        </div>
 
-        <img src="img/logo.png" class="logo-topo">
-    </div>
+        <div class="conteudo">
+            <div class="paragrafo">
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${dataPadraoOficial}, nesta cidade de ${d.oitiva.cidade}, Estado do Paraná, às ${horarioInicioFormatado}, no(a) ${d.oitiva.local}, situado na ${d.oitiva.endereco}, onde se encontrava presente o Encarregado do(a) ${d.encarregado.procedimento} nº ${d.encarregado.num}, ${d.encarregado.posto} ${d.encarregado.nome}, CPF nº ${d.encarregado.cpf}${textoAdvogado}, compareceu o(a) ${d.depoente.qualidade.toLowerCase()}, Sr(a). <b>${d.depoente.nome}</b>, ${d.depoente.posto ? 'Posto/Graduação: ' + d.depoente.posto + ' (' + d.depoente.quadro + '), ' : ''}CPF nº ${d.depoente.cpf}, ${d.depoente.nasc}, natural de ${d.depoente.cidade_naturalidade}/${d.depoente.estado_naturalidade}, nacionalidade ${d.depoente.nacionalidade}, estado civil ${d.depoente.estado_civil}, profissão ${d.depoente.profissao} (em ${d.depoente.local_profissao}), filho(a) de ${d.depoente.mae}${d.depoente.pai ? ' e de ' + d.depoente.pai : ''}, residente e domiciliado na ${d.depoente.endereco}, o(a) qual, ${textoCompromisso}, perguntado(a) sobre os fatos constantes no presente procedimento, respondeu e declarou:<br><br>
 
-    <div class="titulo-termo">
-        <span style="font-weight: bold; text-decoration: underline;">TERMO DE INQUIRIÇÃO DE TESTEMUNHA</span>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>PASSOU A DECLARAR:</b> "${depoimentoFormatado}"
+            </div>
+        </div>
+
         <br>
-        <span>(1º Ten. QOPM Fulano de Tal/RG 1222222222222)</span>
-    </div>
+        <div class="fecho">
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;E, como nada mais disse e nem lhe foi perguntado pelo Encarregado, deu-se por encerrado o presente termo às ${horarioFimFormatado}, o qual, depois de lido e achado conforme, vai devidamente assinado pelos presentes.
+        </div>
 
-    <div class="conteudo">
-        <div class="paragrafo">
-            ${dataPadraoOficial}, nesta cidade de ${d.oitiva.cidade}, Estado do Paraná, Bairro Centro, sito a
-            ${d.oitiva.endereco}, na(o) ${d.oitiva.local}, onde se encontrava presente o Encarregado, ${d.encarregado.posto} ${d.encarregado.nome}, CPF inscrito sob nº ${d.encarregado.cpf}, Encarregado do ${d.encarregado.procedimento} nº ${d.encarregado.num} ${textoAdvogado}, às <b>${horarioInicioFormatado} </b>, compareceu o  Sr(a). ${d.depoente.posto} ${d.depoente.quadro} / CPF ${d.depoente.cpf}, filho de ${d.depoente.mae}             
-            ${d.depoente.pai ? ` e de ${d.depoente.pai}` : ''}, natural de ${d.depoente.cidade_naturalidade} - ${d.depoente.estado_naturalidade}, estado civil ${d.depoente.estado_civil}, ${d.depoente.nasc}, nacionalidade ${d.depoente.nacionalidade}, de profissão ${d.depoente.profissao}, em ${d.depoente.local_profissao}, residente na ${d.depoente.endereco}, sem qualquer tipo de constrangimento, coação física ou moral, e na qualidade de ${d.depoente.qualidade}, aos costumes nada disse, 
+        <br><br>
+        <div class="assinaturas">
+            <div class="assinantes">
+                ____________________________________________________<br>
+                <b>${d.encarregado.posto} ${d.encarregado.nome}</b><br>
+                Encarregado do(a) ${d.encarregado.procedimento}
+            </div>
+
+            ${temEscrivao ? `
+            <br><br>
+            <div class="assinantes">
+                ____________________________________________________<br>
+                <b>${postoEscrivao} ${nomeEscrivao.toUpperCase()}</b><br>
+                ${cpfEscrivao ? 'CPF nº ' + cpfEscrivao + '<br>' : ''}
+                <b>Escrivão</b>
+            </div>` : ''}
             
-            COMPROMISSOOOOOOOOOOOOO
-            prestando o compromisso de dizer a verdade
-            prometeu dizer a verdade sobre os fatos que deram origem ao presente FATD, perguntado sobre a situação a
-            respeito dos fatos geradores do presente procedimento, passou a declarar: Que compareceu...
+            <br><br>
+            <div class="assinantes">
+                ____________________________________________________<br>
+                <b>${d.depoente.nome}</b><br>${d.depoente.qualidade}
+            </div>
+
+
+            ${temAdvogado ? `
+            <br><br>
+            <div class="assinantes">
+                ____________________________________________________<br>
+                <b>Dr. ${d.oitiva.advogado.nome}</b><br>
+                Advogado - OAB/${d.oitiva.advogado.uf} nº ${d.oitiva.advogado.oab}
+            </div>` : ''}
         </div>
-    </div>
-
-    <div class="fecho">
-
-        E, como nada mais disse e nem foi perguntado pelo sindicante, deu-se por encerrado o presente termo às <b> ${horarioFimFormatado} </b>, 
-        depois de ter sido lido achado conforme, vai devidamente assinado.
-    </div>
-    <br>
-    <div class="assinaturas">
-        <div class="assinantes">
-            1º Ten. QOPM Bagual, RG: 1111111111-1,
-            <br>
-            <b>Encarregado do FATD.</b>
-        </div>
-        <br>
-        <div class="assinantes">
-            1º Ten. QOPM Bagual/RG 111111111-1,
-            <br>
-            <b>Testemunha</b>.
-        </div>
-        <br>
-        ${temAdvogado ? `<div class="assinantes"> ${d.oitiva.advogado.nome}, OAB ${d.oitiva.advogado.oab + '/' + d.oitiva.advogado.uf}<br>
-        <strong>Advogado.</strong>
-    </div>` : ''}
-
-    <br>
-
-    </div>
-    </div>
-</body>
-<script>
-    /*     // Dispara a impressão assim que tudo (incluindo imagens e CSS) carregar
-        window.onload = function () {
-            setTimeout(() => {
-                window.print();
-            }, 500);
-        }; */
-</script>
-
-</html>
+        
+    </body>
+    </html>
     `);
 
     novaJanela.document.close();
