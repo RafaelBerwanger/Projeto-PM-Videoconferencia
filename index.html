@@ -8,9 +8,17 @@
     <title>Videoconferência / Gravação Audiovisual - Intranet PMPR</title>
     <link rel="icon" href="img/favicon.ico" type="image/x-icon">
 
+    <script>
+        // Verifica se o usuário fez login
+        if (sessionStorage.getItem('usuarioLogado') !== 'true') {
+            // Se não estiver logado, redireciona de volta para o login
+            window.location.href = 'login.html';
+        }
+    </script>
+
     <!-- Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Ficheiros CSS -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="style_auxilio.css">
@@ -34,9 +42,9 @@
             <img src="img/logo.png" alt="Logo PMPR" class="sidebar-logo">
             <span>Ajuda do Encarregado</span>
         </div>
-        
+
         <div class="sidebar-title">OITIVAS</div>
-        
+
         <a href="index.html" class="menu-item active">
             <i class="fa-solid fa-video"></i>
             <span>Oitivas Audiovisuais</span>
@@ -45,11 +53,24 @@
             <i class="fa-solid fa-file-pen"></i>
             <span>Oitivas Escritas</span>
         </a>
+
+        <a href="#" class="menu-item logout-item" onclick="fazerLogout()">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Sair</span>
+        </a>
+
+        <script>
+            function fazerLogout() {
+                sessionStorage.removeItem('usuarioLogado'); // Limpa a sessão
+                window.location.href = 'login.html';       // Volta para a tela de login
+            }
+        </script>
+
     </div>
 
     <!-- CONTEÚDO PRINCIPAL -->
     <div class="main-wrapper">
-        
+
         <!-- NAV SUPERIOR -->
         <div class="top-nav" style="display: none;">
             <div class="top-nav-left">
@@ -74,43 +95,56 @@
         </div>
 
         <div class="content-area">
-            
+
             <!-- CARD DE CHECKLIST -->
             <div class="card" style="text-align: center;">
-                <h2 style="font-size: 16px; font-weight: bold; color: #2b80c5; margin-bottom: 5px;">Checklist de Tarefas</h2>
-                <p style="margin-bottom: 10px; color: #555;">Use o botão abaixo para abrir a sequência de verificações da oitiva:</p>
-                <button id="openModal" class="btn btn-blue" style="margin: 0 auto;"><i class="fa-solid fa-list-check"></i> Abrir Checklist</button>
+                <h2 style="font-size: 16px; font-weight: bold; color: #2b80c5; margin-bottom: 5px;">Checklist de Tarefas
+                </h2>
+                <p style="margin-bottom: 10px; color: #555;">Use o botão abaixo para abrir a sequência de verificações
+                    da oitiva:</p>
+                <button id="openModal" class="btn btn-blue" style="margin: 0 auto;"><i
+                        class="fa-solid fa-list-check"></i> Abrir Checklist</button>
             </div>
 
             <!-- MODAL CHECKLIST -->
             <div id="checklistModal" class="modal modal-checklist">
                 <div class="modal-content">
                     <span class="close" id="closeModal">&times;</span>
-                    <h3 style="text-align: center; margin-bottom: 15px; color: #2b80c5;"><i class="fa-solid fa-list-check"></i> Sequência de Ações</h3>
+                    <h3 style="text-align: center; margin-bottom: 15px; color: #2b80c5;"><i
+                            class="fa-solid fa-list-check"></i> Sequência de Ações</h3>
 
                     <div id="checklist">
-                        <div class="checklist-item"><label><input type="checkbox"> Saudação / Hora e data / Identificação do Encarregado</label></div>
+                        <div class="checklist-item"><label><input type="checkbox"> Saudação / Hora e data /
+                                Identificação do Encarregado</label></div>
                         <div class="checklist-item"><input type="checkbox"> Breve resumo dos fatos apurados</div>
-                        <div class="checklist-item"><input type="checkbox"> Informar sobre a gravação (fins exclusivos)</div>
+                        <div class="checklist-item"><input type="checkbox"> Informar sobre a gravação (fins exclusivos)
+                        </div>
                         <div class="checklist-item"><input type="checkbox"> Tomar qualificação do depoente:</div>
                         <div class="checklist-item"><input type="checkbox"> Nome</div>
                         <div class="checklist-item"><input type="checkbox"> RG / CPF / Data de Nascimento</div>
                         <div class="checklist-item"><input type="checkbox"> Filiação</div>
                         <div class="checklist-item"><input type="checkbox"> Estado Civil</div>
                         <div class="checklist-item"><input type="checkbox"> Telefone / Profissão / Escolaridade</div>
-                        <div class="checklist-item"><input type="checkbox"> Endereço (Rua, Núm, Bairro, Comp, Município)</div>
+                        <div class="checklist-item"><input type="checkbox"> Endereço (Rua, Núm, Bairro, Comp, Município)
+                        </div>
                         <div class="checklist-item"><input type="checkbox"> Mostrar o documento para câmera</div>
-                        <div class="checklist-item" style="color: red;"><input type="checkbox"> Verificar grau de parentesco, amizade ou inimizade com o Acusado/Indiciado</div>
-                        <div class="checklist-item" style="color: red;"><input type="checkbox"> Colher/Dispensar do compromisso legal de dizer a verdade, sob pena do crime de falso testemunho</div>
+                        <div class="checklist-item" style="color: red;"><input type="checkbox"> Verificar grau de
+                            parentesco, amizade ou inimizade com o Acusado/Indiciado</div>
+                        <div class="checklist-item" style="color: red;"><input type="checkbox"> Colher/Dispensar do
+                            compromisso legal de dizer a verdade, sob pena do crime de falso testemunho</div>
                         <div class="checklist-item"><input type="checkbox"> Ouvir relato da parte</div>
-                        <div class="checklist-item"><input type="checkbox"> Momento de formulação de questionamentos do Encarregado e do Defensor</div>
-                        <div class="checklist-item" style="color: red;"><input type="checkbox"> Perguntar se há algo mais a ser acrescentado</div>
-                        <div class="checklist-item"><input type="checkbox"> Falar a HORA FINAL da oitiva e encerrar a gravação</div>
+                        <div class="checklist-item"><input type="checkbox"> Momento de formulação de questionamentos do
+                            Encarregado e do Defensor</div>
+                        <div class="checklist-item" style="color: red;"><input type="checkbox"> Perguntar se há algo
+                            mais a ser acrescentado</div>
+                        <div class="checklist-item"><input type="checkbox"> Falar a HORA FINAL da oitiva e encerrar a
+                            gravação</div>
                     </div>
 
                     <hr style="margin: 15px 0;">
                     <div style="display: flex; gap: 5px;">
-                        <input type="text" id="newItem" class="form-control" placeholder="Adicionar nova tarefa..." style="flex: 1;">
+                        <input type="text" id="newItem" class="form-control" placeholder="Adicionar nova tarefa..."
+                            style="flex: 1;">
                         <button id="addItem" class="btn btn-blue" style="padding: 0 12px;">+</button>
                     </div>
                 </div>
@@ -122,7 +156,7 @@
                     <div class="block-title">
                         <i class="fa-solid fa-user-gear"></i> Dados do Encarregado
                     </div>
-                    
+
                     <div class="form-grid">
                         <div class="form-group col-6">
                             <label for="entnome_enc">Nome:</label>
@@ -130,8 +164,10 @@
                         </div>
 
                         <div class="form-group col-3">
-                            <label for="entcni_enc" title="Na certidão, os 3 primeiros dígitos serão ocultados, bem como os dois últimos (ex: XXX.123.123-XX)">CPF/CIN:</label>
-                            <input id="entcni_enc" type="text" class="form-control" maxlength="14" placeholder="000.000.000-00" onkeyup="aplicarMascaraCPF(this)">
+                            <label for="entcni_enc"
+                                title="Na certidão, os 3 primeiros dígitos serão ocultados, bem como os dois últimos (ex: XXX.123.123-XX)">CPF/CIN:</label>
+                            <input id="entcni_enc" type="text" class="form-control" maxlength="14"
+                                placeholder="000.000.000-00" onkeyup="aplicarMascaraCPF(this)">
                         </div>
 
                         <div class="form-group col-3">
@@ -235,7 +271,8 @@
                                 <option value="BATALHÃO DE POLÍCIA RODOVIÁRIA">BPRv</option>
                                 <option value="BATALHÃO DE PATRULHA ESCOLAR COMUNITÁRIA">BPEC</option>
                                 <option value="BATALHÃO DE POLÍCIA MILITAR DE OPERAÇÕES AÉREAS">BPMOA</option>
-                                <option value="REGIMENTO DE POLÍCIA MONTADA - &quot;CORONEL DULCÍDIO&quot;">RPMon</option>
+                                <option value="REGIMENTO DE POLÍCIA MONTADA - &quot;CORONEL DULCÍDIO&quot;">RPMon
+                                </option>
                             </select>
                         </div>
 
@@ -251,8 +288,10 @@
                                         <input id="entnome_esc" type="text" class="form-control">
                                     </div>
                                     <div class="form-group col-2">
-                                        <label for="entcin_esc" title="Na certidão, os 3 primeiros dígitos serão ocultados, bem como os dois últimos (ex: XXX.123.123-XX)">CPF/CIN:</label>
-                                        <input id="entcin_esc" type="text" class="form-control" maxlength="14" placeholder="000.000.000-00" onkeyup="aplicarMascaraCPF(this)">
+                                        <label for="entcin_esc"
+                                            title="Na certidão, os 3 primeiros dígitos serão ocultados, bem como os dois últimos (ex: XXX.123.123-XX)">CPF/CIN:</label>
+                                        <input id="entcin_esc" type="text" class="form-control" maxlength="14"
+                                            placeholder="000.000.000-00" onkeyup="aplicarMascaraCPF(this)">
                                     </div>
                                     <div class="form-group col-2">
                                         <label for="ent_posto_esc">Posto/Graduação:</label>
@@ -309,7 +348,9 @@
                         </div>
 
                         <div class="form-group col-4">
-                            <label for="ent_presenca" title="Se a pessoa estiver sendo ouvida por videoconferência marque &quot;Não&quot;. Se estiver presente, marque &quot;Sim&quot;">Está presente?</label>
+                            <label for="ent_presenca"
+                                title="Se a pessoa estiver sendo ouvida por videoconferência marque &quot;Não&quot;. Se estiver presente, marque &quot;Sim&quot;">Está
+                                presente?</label>
                             <select id="ent_presenca" class="form-control">
                                 <option value="sim">Sim</option>
                                 <option value="nao">Não</option>
@@ -327,8 +368,10 @@
                         <div class="form-group col-12">
                             <label>Costumes: <span class="required">*</span></label>
                             <div class="radio-inline-group">
-                                <label><input name="ent_cost" type="radio" value="sim" onclick="func_cost()"> Sim</label>
-                                <label><input name="ent_cost" type="radio" value="nao" onclick="func_cost()"> Não (nada disse)</label>
+                                <label><input name="ent_cost" type="radio" value="sim" onclick="func_cost()">
+                                    Sim</label>
+                                <label><input name="ent_cost" type="radio" value="nao" onclick="func_cost()"> Não (nada
+                                    disse)</label>
                             </div>
                             <div id="p_texto" style="margin-top: 5px;"></div>
                         </div>
@@ -339,8 +382,10 @@
                         </div>
 
                         <div class="form-group col-2">
-                            <label for="entcin" title="Na certidão, os 3 primeiros dígitos serão ocultados, bem como os dois últimos (ex: XXX.123.123-XX)">CPF/CIN:</label>
-                            <input id="entcin" type="text" class="form-control" maxlength="14" placeholder="000.000.000-00" onkeyup="aplicarMascaraCPF(this)">
+                            <label for="entcin"
+                                title="Na certidão, os 3 primeiros dígitos serão ocultados, bem como os dois últimos (ex: XXX.123.123-XX)">CPF/CIN:</label>
+                            <input id="entcin" type="text" class="form-control" maxlength="14"
+                                placeholder="000.000.000-00" onkeyup="aplicarMascaraCPF(this)">
                         </div>
 
                         <div class="form-group col-2">
@@ -359,11 +404,13 @@
                                 <div class="form-grid">
                                     <div class="form-group col-6">
                                         <label for="entmae">Mãe:</label>
-                                        <input id="entmae" type="text" class="form-control" placeholder="Nome da genitora">
+                                        <input id="entmae" type="text" class="form-control"
+                                            placeholder="Nome da genitora">
                                     </div>
                                     <div class="form-group col-6">
                                         <label for="entpai">Pai:</label>
-                                        <input id="entpai" type="text" class="form-control" placeholder="Nome do genitor">
+                                        <input id="entpai" type="text" class="form-control"
+                                            placeholder="Nome do genitor">
                                     </div>
                                 </div>
                             </fieldset>
@@ -374,19 +421,24 @@
                                 <legend>Estado Civil</legend>
                                 <div class="radio-inline-group" style="flex-wrap: wrap;">
                                     <label><input id="casado" name="estc" type="radio" value="Casado"> Casado</label>
-                                    <label><input id="solteiro" name="estc" type="radio" value="Solteiro"> Solteiro</label>
+                                    <label><input id="solteiro" name="estc" type="radio" value="Solteiro">
+                                        Solteiro</label>
                                     <label><input id="viúvo" name="estc" type="radio" value="Viúvo"> Viúvo</label>
-                                    <label><input id="convivente" name="estc" type="radio" value="Convivente"> Convivente</label>
-                                    <label><input id="divorciado" name="estc" type="radio" value="Divorciado"> Divorciado</label>
-                                    <label><input id="naoinf" name="estc" type="radio" value="Não informado" checked> Não informado</label>
+                                    <label><input id="convivente" name="estc" type="radio" value="Convivente">
+                                        Convivente</label>
+                                    <label><input id="divorciado" name="estc" type="radio" value="Divorciado">
+                                        Divorciado</label>
+                                    <label><input id="naoinf" name="estc" type="radio" value="Não informado" checked>
+                                        Não informado</label>
                                 </div>
                             </fieldset>
                         </div>
 
                         <div class="form-group col-4">
                             <label for="telef">Telefone:</label>
-                            <input id="telef" type="text" class="form-control" maxlength="16" placeholder="(45) 99999-9999" onkeyup="aplicarMascaraTelefone()">
-                            
+                            <input id="telef" type="text" class="form-control" maxlength="16"
+                                placeholder="(45) 99999-9999" onkeyup="aplicarMascaraTelefone()">
+
                             <label for="prof" style="margin-top: 5px;">Profissão:</label>
                             <input id="prof" type="text" class="form-control" placeholder="ex: Policial Militar">
                         </div>
@@ -414,7 +466,8 @@
                                     </div>
                                     <div class="form-group col-4">
                                         <label for="entnumero">Número:</label>
-                                        <input id="entnumero" type="number" min="1" max="999999" class="form-control" placeholder="Numeral">
+                                        <input id="entnumero" type="number" min="1" max="999999" class="form-control"
+                                            placeholder="Numeral">
                                     </div>
                                     <div class="form-group col-4">
                                         <label for="entbairro">Bairro:</label>
@@ -468,7 +521,8 @@
 
                         <div class="form-group col-4">
                             <label for="loc_oitiva">Local da Oitiva:</label>
-                            <input id="loc_oitiva" type="text" class="form-control" value="Sexto Batalhão de Polícia Militar">
+                            <input id="loc_oitiva" type="text" class="form-control"
+                                value="Sexto Batalhão de Polícia Militar">
                         </div>
 
                         <div class="form-group col-3">
@@ -484,24 +538,30 @@
                         <div class="form-group col-6">
                             <label>Advogado presente? <span class="required">*</span></label>
                             <div class="radio-inline-group">
-                                <label><input name="ent_adv" type="radio" value="sim" onclick="adv_presente()"> Sim</label>
-                                <label><input name="ent_adv" type="radio" value="nao" onclick="adv_presente()"> Não</label>
+                                <label><input name="ent_adv" type="radio" value="sim" onclick="adv_presente()">
+                                    Sim</label>
+                                <label><input name="ent_adv" type="radio" value="nao" onclick="adv_presente()">
+                                    Não</label>
                             </div>
                             <div id="adv" style="margin-top: 5px;"></div>
                         </div>
 
                         <div class="form-group col-12">
-                            <label>Houve alguma alteração durante a gravação do depoimento? <span class="required">*</span></label>
+                            <label>Houve alguma alteração durante a gravação do depoimento? <span
+                                    class="required">*</span></label>
                             <div class="radio-inline-group">
-                                <label><input name="ent_alt" type="radio" value="sim" onclick="func_alteracao()"> Sim (especifique)</label>
-                                <label><input name="ent_alt" type="radio" value="nao" onclick="func_alteracao()"> Não</label>
+                                <label><input name="ent_alt" type="radio" value="sim" onclick="func_alteracao()"> Sim
+                                    (especifique)</label>
+                                <label><input name="ent_alt" type="radio" value="nao" onclick="func_alteracao()">
+                                    Não</label>
                             </div>
                             <div id="texto_alt" style="margin-top: 5px;"></div>
                         </div>
 
                         <div class="form-group col-12">
                             <label for="fileInput">Carregue o arquivo da oitiva:</label>
-                            <input type="file" id="fileInput" class="form-control" onchange="calculateHash()" oninput="geraprevia()">
+                            <input type="file" id="fileInput" class="form-control" onchange="calculateHash()"
+                                oninput="geraprevia()">
                             <span class="link-escriba" onclick="onClick()" style="margin-top: 5px;">
                                 <u><i class="fa-solid fa-plus"></i> Inserir mais vídeos (max. 4)</u>
                             </span>
@@ -544,8 +604,10 @@
                         <div class="form-group col-6">
                             <label>Duração do vídeo:</label>
                             <div style="display: flex; gap: 5px; align-items: center;">
-                                <input id="min" type="text" class="form-control" style="width: 60px; text-align: center;" placeholder="min"> :
-                                <input id="seg" type="text" class="form-control" style="width: 60px; text-align: center;" placeholder="seg">
+                                <input id="min" type="text" class="form-control"
+                                    style="width: 60px; text-align: center;" placeholder="min"> :
+                                <input id="seg" type="text" class="form-control"
+                                    style="width: 60px; text-align: center;" placeholder="seg">
                             </div>
                         </div>
 
@@ -559,7 +621,8 @@
 
                 <!-- BOTÃO DE AÇÃO -->
                 <div class="btn-container" style="justify-content: center;">
-                    <button id="sbmt" type="button" class="btn btn-green" onclick="sbmt1(); func_alteracao(); formatar(); confirmar(); inc_cost(); inc_alt();">
+                    <button id="sbmt" type="button" class="btn btn-green"
+                        onclick="sbmt1(); func_alteracao(); formatar(); confirmar(); inc_cost(); inc_alt();">
                         <i class="fa-solid fa-floppy-disk"></i> Gravar Formulário
                     </button>
                 </div>

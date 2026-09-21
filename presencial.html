@@ -8,6 +8,14 @@
     <title>Auxiliar de Oitivas Escritas - Intranet PMPR</title>
     <link rel="icon" href="img/favicon.ico" type="image/x-icon">
 
+    <script>
+        // Verifica se o usuário fez login
+        if (sessionStorage.getItem('usuarioLogado') !== 'true') {
+            // Se não estiver logado, redireciona de volta para o login
+            window.location.href = 'login.html';
+        }
+    </script>
+
     <!-- Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -44,6 +52,19 @@
             <i class="fa-solid fa-file-pen"></i>
             <span>Oitivas Escritas</span>
         </a>
+
+        <!-- Adicionar dentro da div class="sidebar" -->
+        <a href="#" class="menu-item" onclick="fazerLogout()">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Sair</span>
+        </a>
+
+        <script>
+            function fazerLogout() {
+                sessionStorage.removeItem('usuarioLogado'); // Limpa a sessão
+                window.location.href = 'login.html';       // Volta para a tela de login
+            }
+        </script>
     </div>
 
     <!-- CONTEÚDO PRINCIPAL -->

@@ -33,7 +33,8 @@ body {
     background-color: var(--sidebar-bg);
     color: #ffffff;
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Organiza os itens em coluna */
+    height: 100vh;          /* Ocupa a altura total da janela */
     flex-shrink: 0;
 }
 
@@ -63,6 +64,18 @@ body {
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+/* BOTÃO DE SAIR NO FUNDO DA SIDEBAR */
+.logout-item {
+    margin-top: auto !important; /* O "auto" empurra o item para o fundo */
+    border-top: 1px solid #3c434a; /* Linha divisória subtil */
+    color: #ff6b6b !important;   /* Cor de destaque (opcional) */
+}
+
+.logout-item:hover {
+    background-color: #dc3545 !important; /* Fundo vermelho ao passar o rato */
+    color: #ffffff !important;
 }
 
 .menu-item {
