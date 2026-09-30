@@ -1,6 +1,13 @@
 <?php
 session_start();
 
+// Captura e limpa as mensagens de erro ou sucesso armazenadas na sessão
+$mensagem_sucesso = $_SESSION['sucesso_cadastro'] ?? '';
+$mensagem_erro    = $_SESSION['erro_login'] ?? '';
+
+unset($_SESSION['sucesso_cadastro']);
+unset($_SESSION['erro_login']);
+
 // Se o usuário já estiver autenticado, redireciona para a página principal
 if (isset($_SESSION['usuario_id'])) {
   header('Location: index.php');
@@ -11,6 +18,7 @@ if (isset($_SESSION['usuario_id'])) {
 $erro = $_SESSION['erro_login'] ?? '';
 unset($_SESSION['erro_login']);
 ?>
+
 
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -34,6 +42,25 @@ unset($_SESSION['erro_login']);
       <h2>Acesso ao Sistema</h2>
       <p>Insira suas credenciais para continuar</p>
     </div>
+
+    <!-- ALERTA DE CONFIRMAÇÃO DE SOLICITAÇÃO ENVIADA -->
+    <?php if (!empty($mensagem_sucesso)): ?>
+      <div class="message-box success" style="display: flex; align-items: center; gap: 10px; background-color: #dcfce7; border: 1px solid #86efac; color: #166534; padding: 12px 16px; border-radius: 6px; font-size: 13px; margin-bottom: 20px;">
+        <i class="fa-solid fa-circle-check" style="font-size: 18px; color: #22c55e;"></i>
+        <div>
+          <strong>Solicitação enviada com sucesso!</strong><br>
+          <?= htmlspecialchars($mensagem_sucesso) ?>
+        </div>
+      </div>
+    <?php endif; ?>
+
+    <!-- ALERTA DE ERRO DE LOGIN (CASO HJA) -->
+    <?php if (!empty($mensagem_erro)): ?>
+      <div class="message-box error" style="display: flex; align-items: center; gap: 10px; background-color: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; padding: 12px 16px; border-radius: 6px; font-size: 13px; margin-bottom: 20px;">
+        <i class="fa-solid fa-circle-exclamation" style="font-size: 18px; color: #ef4444;"></i>
+        <div><?= htmlspecialchars($mensagem_erro) ?></div>
+      </div>
+    <?php endif; ?>
 
     <!-- Exibição dinâmica de erros vindos do PHP/MySQL -->
     <?php if (!empty($erro)): ?>

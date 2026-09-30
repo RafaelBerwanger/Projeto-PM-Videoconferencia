@@ -52,7 +52,7 @@ body {
 }
 
 .assinaturas {
-    padding: 7%;
+    padding: 5%;
 }
 
 .assinantes {
@@ -62,7 +62,7 @@ body {
     /* Compatibilidade com navegadores antigos */
 
     /* Garante um respiro no topo se a div for para a página 2 */
-        margin-top: 10%;
+        margin-top: 15%;
 
     margin-bottom: 10mm;
     /* Espaço entre uma assinatura e outra */

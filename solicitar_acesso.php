@@ -2,48 +2,58 @@
 session_start();
 require_once 'db.php';
 
-$mensagem = '';
-$tipo_msg = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $nome            = trim($_POST['nome'] ?? '');
   $rg              = trim($_POST['rg'] ?? '');
   $cpf             = trim($_POST['cpf'] ?? '');
+  $email           = trim($_POST['email'] ?? ''); // <--- 1. Captura o e-mail
   $posto_graduacao = trim($_POST['posto_graduacao'] ?? '');
   $unidade         = trim($_POST['unidade'] ?? '');
   $telefone        = trim($_POST['telefone'] ?? '');
   $usuario         = trim($_POST['usuario'] ?? '');
   $senha           = trim($_POST['senha'] ?? '');
 
-  if (!empty($nome) && !empty($rg) && !empty($cpf) && !empty($posto_graduacao) && !empty($unidade) && !empty($telefone) && !empty($usuario) && !empty($senha)) {
+  // Validação de campos obrigatórios
+  if (!empty($nome) && !empty($rg) && !empty($cpf) && !empty($email) && !empty($posto_graduacao) && !empty($unidade) && !empty($telefone) && !empty($usuario) && !empty($senha)) {
 
-    // Verifica se o usuário ou CPF já existe
-    $stmt = $pdo->prepare('SELECT id FROM usuarios WHERE usuario = :usuario OR cpf = :cpf LIMIT 1');
-    $stmt->execute(['usuario' => $usuario, 'cpf' => $cpf]);
+    // Verificação se o usuário ou CPF já estão cadastrados
+    $stmtCheck = $pdo->prepare('SELECT id FROM usuarios WHERE usuario = :usuario OR cpf = :cpf LIMIT 1');
+    $stmtCheck->execute(['usuario' => $usuario, 'cpf' => $cpf]);
 
-    if ($stmt->fetch()) {
-      $mensagem = 'Nome de usuário ou CPF já cadastrado no sistema.';
-      $tipo_msg = 'error';
-    } else {
-      $senhaHash = password_hash($senha, PASSWORD_BCRYPT);
-      $stmt = $pdo->prepare('INSERT INTO usuarios (nome, rg, cpf, posto_graduacao, unidade, telefone, usuario, senha, perfil, status) VALUES (:nome, :rg, :cpf, :posto, :unidade, :telefone, :usuario, :senha, "operador", "pendente")');
-      $stmt->execute([
-        'nome'     => $nome,
-        'rg'       => $rg,
-        'cpf'      => $cpf,
-        'posto'    => $posto_graduacao,
-        'unidade'  => $unidade,
-        'telefone' => $telefone,
-        'usuario'  => $usuario,
-        'senha'    => $senhaHash
-      ]);
-
-      $mensagem = 'Solicitação enviada com sucesso! Aguarde a aprovação do Administrador.';
-      $tipo_msg = 'success';
+    if ($stmtCheck->fetch()) {
+      $_SESSION['erro_cadastro'] = 'Usuário ou CPF já cadastrados no sistema.';
+      header('Location: solicitar_acesso.php');
+      exit;
     }
+
+    // Criptografia da senha
+    $hashSenha = password_hash($senha, PASSWORD_BCRYPT);
+
+    // <--- 2. INSERT ATUALIZADO INCLUINDO A COLUNA EMAIL
+    $stmt = $pdo->prepare('
+            INSERT INTO usuarios (nome, rg, cpf, email, posto_graduacao, unidade, telefone, usuario, senha, perfil, status) 
+            VALUES (:nome, :rg, :cpf, :email, :posto, :unidade, :telefone, :usuario, :senha, "usuario", "pendente")
+        ');
+
+    $stmt->execute([
+      'nome'     => $nome,
+      'rg'       => $rg,
+      'cpf'      => $cpf,
+      'email'    => $email, // <--- 3. Passa o e-mail no array do PDO
+      'posto'    => $posto_graduacao,
+      'unidade'  => $unidade,
+      'telefone' => $telefone,
+      'usuario'  => $usuario,
+      'senha'    => $hashSenha
+    ]);
+
+    $_SESSION['sucesso_cadastro'] = 'Solicitação realizada com sucesso! Aguarde a aprovação do Administrador.';
+    header('Location: login.php');
+    exit;
   } else {
-    $mensagem = 'Preencha todos os campos obrigatórios.';
-    $tipo_msg = 'error';
+    $_SESSION['erro_cadastro'] = 'Preencha todos os campos obrigatórios.';
+    header('Location: solicitar_acesso.php');
+    exit;
   }
 }
 ?>
@@ -122,6 +132,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="input-wrapper">
           <i class="fa-solid fa-id-card input-icon"></i>
           <input type="text" id="nome" name="nome" placeholder="Nome completo sem abreviações" required>
+        </div>
+      </div>
+
+
+      <!-- Campo E-mail no Formulário de Solicitação -->
+      <div class="input-group">
+        <label for="email">E-mail Corporativo ou Pessoal</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-envelope input-icon"></i>
+          <input type="email" id="email" name="email" placeholder="seu.email@pm.pr.gov.br" required>
         </div>
       </div>
 
