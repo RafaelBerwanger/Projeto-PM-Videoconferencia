@@ -37,75 +37,14 @@
 
 <body>
 
-    <!-- BARRA LATERAL DA INTRANET PMPR -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <img src="img/logo.png" alt="Logo PMPR" class="sidebar-logo">
-            <span>Ajuda do Encarregado</span>
-        </div>
-
-        <div class="sidebar-title">OITIVAS</div>
-
-        <a href="index.php" class="menu-item">
-            <i class="fa-solid fa-video"></i>
-            <span>Oitivas Audiovisuais</span>
-        </a>
-        <a href="presencial.php" class="menu-item active">
-            <i class="fa-solid fa-file-pen"></i>
-            <span>Oitivas Escritas</span>
-        </a>
-
-        <!-- ITEM VISÍVEL APENAS SE O USUÁRIO FOR ADMIN -->
-        <?php if (($_SESSION['usuario_perfil'] ?? '') === 'admin'): ?>
-            <div class="sidebar-title" style="margin-top: 15px; color: #f59e0b;">ADMINISTRAÇÃO</div>
-            <a href="admin_usuarios.php" class="menu-item">
-                <i class="fa-solid fa-user-gear" style="color: #f59e0b;"></i>
-                <span>Gestão de Acessos</span>
-            </a>
-        <?php endif; ?>
-
-        <!-- Opção de Perfil para qualquer usuário -->
-        <a href="meu_perfil.php" class="menu-item">
-            <i class="fa-solid fa-user-pen"></i>
-            <span>Meu Perfil</span>
-        </a>
-
-        <!-- No menu lateral (Sidebar) -->
-        <a href="logout.php" class="menu-item logout-item">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            <span>Sair</span>
-        </a>
-
-    </div>
+    <!-- Inclui a barra lateral centralizada -->
+    <?php require_once 'sidebar.php'; ?>
 
     <!-- CONTEÚDO PRINCIPAL -->
     <div class="main-wrapper">
 
         <!-- NAV SUPERIOR -->
-        <div class="top-nav">
-            <div class="top-nav-left">
-                <i class="fa-solid fa-bars"></i>
-                <a href="#">Administração</a>
-                <a href="#">Boletins</a>
-                <a href="#">Sistemas</a>
-            </div>
-
-            <!-- DATA E HORA EM TEMPO REAL (HORÁRIO DE BRASÍLIA) -->
-            <div class="top-nav-center" style="color: #64748b; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-                <i class="fa-regular fa-clock"></i>
-                <span id="relogio-brasilia">Carregando horário...</span>
-            </div>
-
-            <div class="top-nav-right">
-                <span class="badge-email"><i class="fa-regular fa-envelope"></i> Emails</span>
-                <i class="fa-regular fa-bell" style="color:#666;"></i>
-                <div class="user-profile">
-                    <div class="user-avatar"><i class="fa-solid fa-user"></i></div>
-                    <!-- Exibe o nome armazenado na sessão do PHP -->
-                    <span><?= htmlspecialchars($_SESSION['usuario_nome'] ?? 'Usuário Logado') ?></span>
-                </div>
-            </div>
-        </div>
+        <?php require_once 'top-nav.php'; ?>
 
         <!-- BANNER DE TÍTULO DA PÁGINA -->
         <div class="page-banner">
