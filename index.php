@@ -8,13 +8,14 @@
     <title>Videoconferência / Gravação Audiovisual - Intranet PMPR</title>
     <link rel="icon" href="img/favicon.ico" type="image/x-icon">
 
-    <script>
-        // Verifica se o usuário fez login
-        if (sessionStorage.getItem('usuarioLogado') !== 'true') {
-            // Se não estiver logado, redireciona de volta para o login
-            window.location.href = 'login.html';
-        }
-    </script>
+    <?php
+    session_start();
+    // Se o usuário não estiver logado, redireciona de volta para a tela de login
+    if (!isset($_SESSION['usuario_id'])) {
+        header('Location: login.php');
+        exit;
+    }
+    ?>
 
     <!-- Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -45,26 +46,36 @@
 
         <div class="sidebar-title">OITIVAS</div>
 
-        <a href="index.html" class="menu-item active">
+        <a href="index.php" class="menu-item active">
             <i class="fa-solid fa-video"></i>
             <span>Oitivas Audiovisuais</span>
         </a>
-        <a href="presencial.html" class="menu-item">
+        <a href="presencial.php" class="menu-item">
             <i class="fa-solid fa-file-pen"></i>
             <span>Oitivas Escritas</span>
         </a>
 
-        <a href="#" class="menu-item logout-item" onclick="fazerLogout()">
+        <!-- ITEM VISÍVEL APENAS SE O USUÁRIO FOR ADMIN -->
+        <?php if (($_SESSION['usuario_perfil'] ?? '') === 'admin'): ?>
+            <div class="sidebar-title" style="margin-top: 15px; color: #f59e0b;">ADMINISTRAÇÃO</div>
+            <a href="admin_usuarios.php" class="menu-item">
+                <i class="fa-solid fa-user-gear" style="color: #f59e0b;"></i>
+                <span>Gestão de Acessos</span>
+            </a>
+        <?php endif; ?>
+
+        <!-- Opção de Perfil para qualquer usuário -->
+        <a href="meu_perfil.php" class="menu-item">
+            <i class="fa-solid fa-user-pen"></i>
+            <span>Meu Perfil</span>
+        </a>
+
+        <!-- No menu lateral (Sidebar) -->
+        <a href="logout.php" class="menu-item logout-item">
             <i class="fa-solid fa-right-from-bracket"></i>
             <span>Sair</span>
         </a>
 
-        <script>
-            function fazerLogout() {
-                sessionStorage.removeItem('usuarioLogado'); // Limpa a sessão
-                window.location.href = 'login.html';       // Volta para a tela de login
-            }
-        </script>
 
     </div>
 
@@ -72,19 +83,27 @@
     <div class="main-wrapper">
 
         <!-- NAV SUPERIOR -->
-        <div class="top-nav" style="display: none;">
+        <div class="top-nav">
             <div class="top-nav-left">
                 <i class="fa-solid fa-bars"></i>
                 <a href="#">Administração</a>
                 <a href="#">Boletins</a>
                 <a href="#">Sistemas</a>
             </div>
+
+            <!-- DATA E HORA EM TEMPO REAL (HORÁRIO DE BRASÍLIA) -->
+            <div class="top-nav-center" style="color: #64748b; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-regular fa-clock"></i>
+                <span id="relogio-brasilia">Carregando horário...</span>
+            </div>
+
             <div class="top-nav-right">
                 <span class="badge-email"><i class="fa-regular fa-envelope"></i> Emails</span>
                 <i class="fa-regular fa-bell" style="color:#666;"></i>
                 <div class="user-profile">
                     <div class="user-avatar"><i class="fa-solid fa-user"></i></div>
-                    <span>Rafael Andreas Berwanger</span>
+                    <!-- Exibe o nome armazenado na sessão do PHP -->
+                    <span><?= htmlspecialchars($_SESSION['usuario_nome'] ?? 'Usuário Logado') ?></span>
                 </div>
             </div>
         </div>
@@ -641,6 +660,31 @@
     </div>
 
     <script src="./auxilio.js"></script>
+
+    <script>
+        function atualizarRelogioBrasilia() {
+            // Obtém a data/hora ajustada para o fuso horário de Brasília (America/Sao_Paulo)
+            const opcoes = {
+                timeZone: 'America/Sao_Paulo',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+
+            const agora = new Date().toLocaleString('pt-BR', opcoes);
+            const [data, hora] = agora.split(', ');
+
+            document.getElementById('relogio-brasilia').textContent = `${data} - ${hora}`;
+        }
+
+        // Atualiza imediatamente e depois a cada 1 segundo (1000ms)
+        atualizarRelogioBrasilia();
+        setInterval(atualizarRelogioBrasilia, 1000);
+    </script>
+
 </body>
 
 </html>
