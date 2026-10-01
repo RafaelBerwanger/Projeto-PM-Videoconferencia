@@ -68,7 +68,7 @@ function estaSelecionado($valorOpcao, $valorBanco)
         <div class="content-area">
 
             <!-- ALERTA DE DESENVOLVIMENTO -->
-<!--             <div class="alert-dev" style="font-size: 20px; color: brown;">
+            <!--             <div class="alert-dev" style="font-size: 20px; color: brown;">
                 <i class="fa-solid fa-triangle-exclamation"></i> <strong>Aviso:</strong> Módulo em desenvolvimento
                 (funcionalidade ainda não disponível totalmente).
             </div> -->
@@ -558,12 +558,30 @@ function estaSelecionado($valorOpcao, $valorBanco)
                             <label for="entfim">Término:</label>
                             <input id="entfim" type="time" class="form-control">
                         </div>
+                        <br>
 
-                        <div class="form-group col-12">
-                            <label for="depoimento_txt"><strong>Declaração / Depoimento:</strong></label>
-                            <textarea id="depoimento_txt" class="form-control" rows="12"
-                                placeholder="Digite o texto transcrito do depoimento..."></textarea>
+
+                    </div>
+
+                    <!-- Campo de Texto do Depoimento com Botão de Transcrição -->
+                    <div class="input-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+                            <label for="depoimento_txt" style="font-weight: bold;">Texto do Depoimento / Declarações:</label>
+
+                            <div style="display: flex; gap: 8px;">
+                                <!-- BOTÃO 1: DITADO POR VOZ -->
+                                <button type="button" id="btn_voz" onclick="alternarDitado()" class="btn-acao" style="background: #2563eb; color: #fff; border: none; cursor: pointer; padding: 6px 12px; border-radius: 4px; font-size: 13px;">
+                                    <i class="fa-solid fa-microphone" id="icone_voz"></i> <span id="texto_btn_voz">Ditado por Voz</span>
+                                </button>
+
+                                <!-- BOTÃO 2: REFINAR COM IA -->
+                                <button type="button" id="btn_ia" onclick="refinarTextoIA()" class="btn-acao" style="background: #8b5cf6; color: #fff; border: none; cursor: pointer; padding: 6px 12px; border-radius: 4px; font-size: 13px;">
+                                    <i class="fa-solid fa-wand-magic-sparkles" id="icone_ia"></i> <span id="texto_btn_ia">Refinar com IA</span>
+                                </button>
+                            </div>
                         </div>
+
+                        <textarea id="depoimento_txt" name="depoimento_txt" rows="10" style="width: 100%; padding: 10px; font-family: Arial, sans-serif; font-size: 14px;" placeholder="Digite ou clique em 'Ditado por Voz' para transcrever o depoimento falado..."></textarea>
                     </div>
                 </div>
 

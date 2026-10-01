@@ -226,7 +226,7 @@ function gerarPDF(d) {
     // Abertura da Janela de Impressão
     const novaJanela = window.open('', '_blank');
 
-novaJanela.document.write(`
+    novaJanela.document.write(`
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
@@ -379,7 +379,7 @@ novaJanela.document.write(`
     novaJanela.document.close();
 
     // DISPARO AUTOMÁTICO DA IMPRESSÃO ASSIM QUE O DOCUMENTO/IMAGENS CARREGAREM
-    novaJanela.onload = function() {
+    novaJanela.onload = function () {
         novaJanela.focus();
         novaJanela.print();
     };
@@ -412,3 +412,217 @@ function aplicarMascaraCPF(i) {
     if (v.length == 3 || v.length == 7) i.value += ".";
     if (v.length == 11) i.value += "-";
 }
+
+// ==========================================
+// DITADO POR VOZ EM TEMPO REAL (WEB SPEECH API)
+// ==========================================
+let recognition = null;
+let gravando = false;
+let textoBase = ''; // Guarda o texto fixo acumulado
+
+function iniciarReconhecimentoVoz() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    alert("O seu navegador não suporta a transcrição por voz. Recomendamos o Google Chrome ou Microsoft Edge.");
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = 'pt-BR';
+  
+  // PERMITE RESULTADOS CONTÍNUOS E EM TEMPO REAL
+  recognition.continuous = true;
+  recognition.interimResults = true; 
+
+  const campoTexto = document.getElementById('depoimento_txt');
+  const btnVoz = document.getElementById('btn_voz');
+  const iconeVoz = document.getElementById('icone_voz');
+  const textoBtnVoz = document.getElementById('texto_btn_voz');
+
+  // Ao iniciar a gravação, guarda o texto que já existia no textarea
+  textoBase = campoTexto.value;
+  if (textoBase.length > 0 && !textoBase.endsWith(' ')) {
+    textoBase += ' ';
+  }
+
+  recognition.onresult = (event) => {
+    let transcricaoFinal = '';
+    let transcricaoProvisoria = '';
+
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const texto = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        transcricaoFinal += texto;
+      } else {
+        transcricaoProvisoria += texto;
+      }
+    }
+
+    // Se houver texto finalizado, consolida no textoBase
+    if (transcricaoFinal) {
+      textoBase += transcricaoFinal + ' ';
+    }
+
+    // Atualiza a tela EM TEMPO REAL com o texto consolidado + o provisório atual
+    campoTexto.value = textoBase + transcricaoProvisoria;
+
+    // Rola o textarea automaticamente para o final conforme digita
+    campoTexto.scrollTop = campoTexto.scrollHeight;
+  };
+
+  recognition.onerror = (event) => {
+    console.error("Erro na transcrição de voz:", event.error);
+    if (event.error !== 'no-speech') {
+      pararDitado();
+    }
+  };
+
+  recognition.onend = () => {
+    // Se o navegador parar sozinho mas o botão ainda estiver ativo, reinicia para não cortar
+    if (gravando) {
+      recognition.start();
+    } else {
+      pararDitado();
+    }
+  };
+
+  recognition.start();
+  gravando = true;
+
+  // Atualiza visual do botão para vermelho (Gravando)
+  btnVoz.style.background = '#dc2626';
+  iconeVoz.className = 'fa-solid fa-microphone-slash';
+  textoBtnVoz.innerText = 'Parar Ditado';
+}
+
+function pararDitado() {
+  if (recognition) {
+    gravando = false;
+    recognition.stop();
+  }
+
+  const btnVoz = document.getElementById('btn_voz');
+  const iconeVoz = document.getElementById('icone_voz');
+  const textoBtnVoz = document.getElementById('texto_btn_voz');
+
+  if (btnVoz) {
+    btnVoz.style.background = '#2563eb';
+    iconeVoz.className = 'fa-solid fa-microphone';
+    textoBtnVoz.innerText = 'Ditado por Voz';
+  }
+}
+
+function alternarDitado() {
+  if (gravando) {
+    pararDitado();
+  } else {
+    iniciarReconhecimentoVoz();
+  }
+}
+
+// Variable para guardar o texto original antes de refinar
+let textoOriginalBackup = null;
+let textoEstaRefinado = false;
+
+// ==========================================
+// FUNÇÃO PARA REFINAR / DESFAZER REFINAMENTO VIA IA
+// ==========================================
+async function refinarTextoIA() {
+  const campoTexto = document.getElementById('depoimento_txt');
+  const btnIa = document.getElementById('btn_ia');
+  const iconeIa = document.getElementById('icone_ia');
+  const textoBtnIa = document.getElementById('texto_btn_ia');
+
+  // CASO 1: SE O TEXTO JÁ FOI REFINADO, DESFAZ A ALTERAÇÃO
+  if (textoEstaRefinado) {
+    if (textoOriginalBackup !== null) {
+      campoTexto.value = textoOriginalBackup;
+    }
+    
+    // Reseta o estado
+    textoEstaRefinado = false;
+    textoOriginalBackup = null;
+
+    // Restaura o estilo e texto original do botão
+    btnIa.style.background = '#8b5cf6'; // Roxo padrão
+    iconeIa.className = 'fa-solid fa-wand-magic-sparkles';
+    textoBtnIa.innerText = 'Refinar com IA';
+    return;
+  }
+
+  // CASO 2: SOLICITAR NOVO REFINAMENTO À IA
+  const textoAtual = campoTexto.value.trim();
+
+  if (!textoAtual) {
+    alert("Por favor, digite ou dite um depoimento antes de solicitar o refinamento.");
+    return;
+  }
+
+  // Se o ditado por voz estiver ativo, encerra
+  if (typeof gravando !== 'undefined' && gravando) {
+    pararDitado();
+  }
+
+  // Salva o texto bruto antes de enviar para a IA
+  textoOriginalBackup = campoTexto.value;
+
+  // Animação de carregamento
+  btnIa.disabled = true;
+  btnIa.style.opacity = '0.7';
+  iconeIa.className = 'fa-solid fa-spinner fa-spin';
+  textoBtnIa.innerText = 'Refinando...';
+
+  try {
+    const resposta = await fetch('refinar_texto.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ texto: textoAtual })
+    });
+
+    const dados = await resposta.json();
+
+    if (dados.sucesso) {
+      campoTexto.value = dados.texto;
+      textoEstaRefinado = true;
+
+      // Altera o visual do botão para opção de "Desfazer"
+      btnIa.style.background = '#d97706'; // Laranja / Âmbar
+      iconeIa.className = 'fa-solid fa-rotate-left';
+      textoBtnIa.innerText = 'Desfazer Refinamento';
+    } else {
+      alert("Erro ao refinar texto: " + (dados.erro || "Erro desconhecido."));
+      textoOriginalBackup = null;
+    }
+  } catch (erro) {
+    console.error("Erro na requisição da IA:", erro);
+    alert("Não foi possível conectar ao servidor de IA. Verifique sua conexão.");
+    textoOriginalBackup = null;
+  } finally {
+    btnIa.disabled = false;
+    btnIa.style.opacity = '1';
+  }
+}
+
+// Se o usuário digitar manualmente no textarea enquanto estiver refinado, reseta o estado do botão
+document.addEventListener('DOMContentLoaded', () => {
+  const campoTexto = document.getElementById('depoimento_txt');
+  if (campoTexto) {
+    campoTexto.addEventListener('input', () => {
+      if (textoEstaRefinado) {
+        textoEstaRefinado = false;
+        textoOriginalBackup = null;
+
+        const btnIa = document.getElementById('btn_ia');
+        const iconeIa = document.getElementById('icone_ia');
+        const textoBtnIa = document.getElementById('texto_btn_ia');
+
+        if (btnIa) {
+          btnIa.style.background = '#8b5cf6';
+          iconeIa.className = 'fa-solid fa-wand-magic-sparkles';
+          textoBtnIa.innerText = 'Refinar com IA';
+        }
+      }
+    });
+  }
+});
