@@ -32,16 +32,24 @@ unset($_SESSION['erro_login']);
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
+
 <body>
 
   <div class="login-container">
     <div class="login-header">
+      <!-- IMAGEM DINO PNG -->
+      <div style="text-align: center; margin-bottom: 15px;">
+        <img src="img/dino.png"
+          alt="Dino Encarregado PMPR"
+          style="width: 100%; max-width: 220px; height: auto; display: block; margin: 0 auto;">
+      </div>
       <div class="logo-icon">
-        <i class="fa-solid fa-shield-halved"></i>
+        <!-- <i class="fa-solid fa-shield-halved"></i> -->
       </div>
       <h2>Acesso ao Sistema</h2>
       <p>Insira suas credenciais para continuar</p>
     </div>
+
 
     <!-- ALERTA DE CONFIRMAÇÃO DE SOLICITAÇÃO ENVIADA -->
     <?php if (!empty($mensagem_sucesso)): ?>
