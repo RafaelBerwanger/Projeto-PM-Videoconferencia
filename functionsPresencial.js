@@ -226,13 +226,90 @@ function gerarPDF(d) {
     // Abertura da Janela de Impressão
     const novaJanela = window.open('', '_blank');
 
-    novaJanela.document.documentElement.innerHTML = (`
+novaJanela.document.write(`
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
         <meta charset="UTF-8">
         <title>${tituloTermo} - ${d.depoente.nome}</title>
-        <link rel="stylesheet" href="style_impress_pdf.css">
+        <style>
+            /* CONFIGURAÇÕES DE PÁGINA PARA IMPRESSÃO A4 */
+            @page {
+                size: A4 portrait;
+                margin: 1.5cm 1.5cm 1.5cm 2cm !important; /* Margem padrão documental */
+            }
+
+            * {
+                box-sizing: border-box;
+                -webkit-print-color-adjust: exact;
+            }
+
+            html, body {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background-color: #ffffff;
+                font-family: 'Times New Roman', Times, serif;
+                color: #000000;
+            }
+
+            /* CABEÇALHO E BRASÕES */
+            .cabecalho-container {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                width: 100% !important;
+                margin-bottom: 25px;
+            }
+
+            .logo-topo {
+                height: 70px;
+                width: auto;
+            }
+
+            .texto-central {
+                text-align: center;
+                font-weight: bold;
+                font-size: 11pt;
+                line-height: 1.3;
+            }
+
+            /* TÍTULO DO TERMO */
+            .titulo-termo {
+                text-align: center;
+                margin-top: 15px;
+                margin-bottom: 25px;
+                font-size: 12pt;
+                width: 100% !important;
+            }
+
+            /* CORPO DO TEXTO (OCUPA 100% DA LARGURA) */
+            .conteudo, .fecho {
+                width: 100% !important;
+                max-width: 100% !important;
+                font-size: 11pt;
+                line-height: 1.6;
+                text-align: justify;
+                text-justify: inter-word;
+            }
+
+            .paragrafo {
+                text-align: justify;
+            }
+
+            /* BLOCO DE ASSINATURAS */
+            .assinaturas {
+                width: 100% !important;
+                margin-top: 40px;
+                text-align: center;
+                page-break-inside: avoid;
+            }
+
+            .assinantes {
+                margin-bottom: 25px;
+                font-size: 11pt;
+            }
+        </style>
     </head>
     <body>
         <div class="cabecalho-container">
@@ -276,8 +353,7 @@ function gerarPDF(d) {
             <br><br>
             <div class="assinantes">
                 ____________________________________________________<br>
-                <b>${postoEscrivao} ${nomeEscrivao.toUpperCase()}</b><br>
-                ${cpfEscrivao ? 'CPF nº ' + cpfEscrivao + '<br>' : ''}
+                <b>${postoEscrivao} ${nomeEscrivao.toUpperCase()}</b><br>${cpfEscrivao ? 'CPF nº ' + cpfEscrivao + '<br>' : ''}
                 <b>Escrivão</b>
             </div>` : ''}
             
@@ -286,7 +362,6 @@ function gerarPDF(d) {
                 ____________________________________________________<br>
                 <b>${d.depoente.nome}</b><br>${d.depoente.qualidade}
             </div>
-
 
             ${temAdvogado ? `
             <br><br>
@@ -302,6 +377,12 @@ function gerarPDF(d) {
     `);
 
     novaJanela.document.close();
+
+    // DISPARO AUTOMÁTICO DA IMPRESSÃO ASSIM QUE O DOCUMENTO/IMAGENS CARREGAREM
+    novaJanela.onload = function() {
+        novaJanela.focus();
+        novaJanela.print();
+    };
 }
 
 
@@ -331,6 +412,3 @@ function aplicarMascaraCPF(i) {
     if (v.length == 3 || v.length == 7) i.value += ".";
     if (v.length == 11) i.value += "-";
 }
-
-
-

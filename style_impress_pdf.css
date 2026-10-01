@@ -1,72 +1,89 @@
-@media print {
-    @page {
-        size: A4;
-        margin-bottom: 2cm;
-    }
-
-    body {
-        margin: 0;
-        padding: 25mm 20mm 25mm 30mm;
-    }
+/* Configuração da folha A4 com margens otimizadas */
+@page {
+    size: A4 portrait;
+    /* Margens da página: Superior, Direita, Inferior, Esquerda */
+    margin: 1.2cm 1.2cm 1.2cm 1.5cm;
 }
 
-body {
-    font-family: Arial, sans-serif;
-    font-size: 12pt;
-    line-height: 1.5;
-    text-align: justify;
+* {
+    box-sizing: border-box;
 }
 
-/* Container do Cabeçalho com Imagens */
+html, body {
+    width: 100% !important;
+    height: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-color: #ffffff;
+    font-family: 'Times New Roman', Times, serif, Arial;
+    color: #000000;
+}
+
+/* Remova restrições de largura e paddings excessivos do container */
+.cabecalho-container,
+.titulo-termo,
+.conteudo,
+.fecho,
+.assinaturas,
+.pagina,
+#relatorio {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Ajuste do Cabeçalho com os Brasões nas pontas */
 .cabecalho-container {
     display: flex;
     justify-content: space-between;
-    /* Empurra um para cada lado */
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     width: 100%;
 }
 
-.titulo-termo {
-    padding: 10%;
-    text-align: center;
-}
-
 .logo-topo {
-    height: 25mm;
-    /* Altura fixa para manter simetria */
+    height: 65px;
     width: auto;
 }
 
 .texto-central {
     text-align: center;
     font-weight: bold;
-    flex-grow: 1;
-    /* Faz o texto ocupar o centro */
+    font-size: 11pt;
+    line-height: 1.3;
+}
+
+/* Título centralizado */
+.titulo-termo {
+    text-align: center;
+    margin-top: 15px;
+    margin-bottom: 20px;
     font-size: 12pt;
-    text-transform: uppercase;
+}
+
+/* Corpo do texto aproveitando toda a largura da folha */
+.conteudo, .fecho {
+    font-size: 11pt;
+    line-height: 1.5;
+    text-align: justify;
+    text-justify: inter-word;
 }
 
 .paragrafo {
-    margin-bottom: 20px;
+    text-align: justify;
 }
 
+/* Bloco de assinaturas */
 .assinaturas {
-    padding: 5%;
+    margin-top: 35px;
+    text-align: center;
+    page-break-inside: avoid;
 }
 
 .assinantes {
-    /* Impede que o conteúdo dentro desta div seja cortado entre páginas */
-    break-inside: avoid;
-    page-break-inside: avoid;
-    /* Compatibilidade com navegadores antigos */
-
-    /* Garante um respiro no topo se a div for para a página 2 */
-        margin-top: 15%;
-
-    margin-bottom: 10mm;
-    /* Espaço entre uma assinatura e outra */
-    text-align: center;
-    /* Geralmente assinaturas são centralizadas */
+    margin-bottom: 20px;
+    font-size: 11pt;
 }
-
