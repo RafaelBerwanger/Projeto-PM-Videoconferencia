@@ -33,9 +33,27 @@ if (isset($_GET['acao']) && isset($_GET['id'])) {
     exit;
 }
 
-// Busca solicitações pendentes e usuários cadastrados
+// -------------------------------------------------------------
+// LÓGICA DE PAGINAÇÃO E CONSULTAS AO BANCO DE DADOS
+// -------------------------------------------------------------
+$limite_por_pagina = 10;
+$pagina_atual = isset($_GET['pagina']) ? max(1, (int)$_GET['pagina']) : 1;
+$inicio = ($pagina_atual - 1) * $limite_por_pagina;
+
+// 1. Busca solicitações pendentes (todas)
 $pendentes = $pdo->query('SELECT * FROM usuarios WHERE status = "pendente" ORDER BY criado_em DESC')->fetchAll();
-$todos     = $pdo->query('SELECT * FROM usuarios WHERE status != "pendente" ORDER BY nome ASC')->fetchAll();
+
+// 2. Conta total de usuários cadastrados (aprovados ou recusados) para o Card e Paginação
+$total_cadastrados_stmt = $pdo->query('SELECT COUNT(*) FROM usuarios WHERE status != "pendente"');
+$total_cadastrados = $total_cadastrados_stmt->fetchColumn();
+$total_paginas = ceil($total_cadastrados / $limite_por_pagina);
+
+// 3. Busca os usuários cadastrados com limites (Paginação)
+$stmt_todos = $pdo->prepare('SELECT * FROM usuarios WHERE status != "pendente" ORDER BY nome ASC LIMIT :inicio, :limite');
+$stmt_todos->bindValue(':inicio', $inicio, PDO::PARAM_INT);
+$stmt_todos->bindValue(':limite', $limite_por_pagina, PDO::PARAM_INT);
+$stmt_todos->execute();
+$todos = $stmt_todos->fetchAll();
 
 // Função auxiliar para gerar link do WhatsApp
 function gerarLinkWhatsapp($telefone) {
@@ -71,6 +89,27 @@ function gerarLinkWhatsapp($telefone) {
     .status-recusado { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
     .link-wpp { color: #16a34a; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
     .link-wpp:hover { text-decoration: underline; }
+
+    /* CARD DE CONTADOR E PAGINAÇÃO */
+    .card-contador {
+      background: #ffffff;
+      border-left: 4px solid #2b80c5;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      display: inline-flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .card-contador i { font-size: 28px; color: #2b80c5; }
+    .card-contador .titulo-card { font-size: 12px; color: #64748b; font-weight: bold; text-transform: uppercase; }
+    .card-contador .valor-card { font-size: 22px; font-weight: bold; color: #0f172a; }
+
+    .paginacao { display: flex; justify-content: center; gap: 6px; margin-top: 20px; }
+    .paginacao a, .paginacao span { padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 6px; text-decoration: none; color: #334155; font-size: 13px; background: #fff; }
+    .paginacao a:hover { background-color: #2b80c5; color: #fff; border-color: #2b80c5; }
+    .paginacao .ativa { background-color: #2b80c5; color: #fff; border-color: #2b80c5; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -89,9 +128,14 @@ function gerarLinkWhatsapp($telefone) {
 
     <div class="content-area">
       
-      <p style="color: #64748b; font-size: 13px; margin-bottom: 20px;">
-        Gerencie os pedidos de cadastro, acesse os contatos diretos e remova usuários do sistema.
-      </p>
+      <!-- CARD DE TOTAL CADASTRADOS -->
+      <div class="card-contador">
+        <i class="fa-solid fa-users-gear"></i>
+        <div>
+          <div class="titulo-card">Usuários Cadastrados</div>
+          <div class="valor-card"><?= $total_cadastrados ?></div>
+        </div>
+      </div>
 
       <!-- TABELA 1: SOLICITAÇÕES PENDENTES -->
       <div class="card">
@@ -107,7 +151,7 @@ function gerarLinkWhatsapp($telefone) {
                 <th>Unidade / OPM</th>
                 <th>Contato / Telefone</th>
                 <th>Usuário</th>
-                <th>Data</th>
+                <th>Data Cadastro</th>
                 <th>Ações</th>
               </tr>
             </thead>
@@ -129,7 +173,9 @@ function gerarLinkWhatsapp($telefone) {
                     <?php endif; ?>
                   </td>
                   <td><code><?= htmlspecialchars($u['usuario']) ?></code></td>
-                  <td style="font-size: 11px; color: #64748b;"><?= date('d/m/Y H:i', strtotime($u['criado_em'])) ?></td>
+                  <td style="font-size: 11px; color: #64748b;">
+                    <?= !empty($u['criado_em']) ? date('d/m/Y H:i', strtotime($u['criado_em'])) : 'N/A' ?>
+                  </td>
                   <td style="display: flex; gap: 4px;">
                     <a href="admin_usuarios.php?acao=aprovar&id=<?= $u['id'] ?>" class="btn-acao btn-aprovar"><i class="fa-solid fa-check"></i> Aprovar</a>
                     <a href="admin_usuarios.php?acao=recusar&id=<?= $u['id'] ?>" class="btn-acao btn-recusar" onclick="return confirm('Deseja recusar esta solicitação?')"><i class="fa-solid fa-xmark"></i> Negar</a>
@@ -144,7 +190,7 @@ function gerarLinkWhatsapp($telefone) {
         <?php endif; ?>
       </div>
 
-      <!-- TABELA 2: USUÁRIOS AVALIADOS / CADASTRADOS -->
+      <!-- TABELA 2: USUÁRIOS CADASTRADOS (PAGINADA) -->
       <div class="card" style="margin-top: 25px;">
         <div class="block-title">
           <i class="fa-solid fa-users"></i> Usuários Cadastrados
@@ -155,50 +201,85 @@ function gerarLinkWhatsapp($telefone) {
             <tr>
               <th>Posto / Nome / Documentos</th>
               <th>Unidade / OPM</th>
-              <th>Contato / Telefone</th>
+              <th>Contato</th>
               <th>Usuário</th>
-              <th>Perfil</th>
+              <th>Criação</th>
+              <th>Último Acesso</th>
               <th>Status</th>
               <th>Ações</th>
             </tr>
           </thead>
           <tbody>
-            <?php foreach ($todos as $u): ?>
+            <?php if (count($todos) > 0): ?>
+              <?php foreach ($todos as $u): ?>
+                <tr>
+                  <td>
+                    <strong><?= htmlspecialchars(($u['posto_graduacao'] ?? '') . ' ' . $u['nome']) ?></strong>
+                    <div style="font-size: 11px; color: #64748b;">RG: <?= htmlspecialchars($u['rg'] ?? 'N/A') ?> | CPF: <?= htmlspecialchars($u['cpf'] ?? 'N/A') ?></div>
+                  </td>
+                  <td><i class="fa-solid fa-building-shield" style="color: #64748b;"></i> <?= htmlspecialchars($u['unidade'] ?? 'N/A') ?></td>
+                  <td>
+                    <?php if (!empty($u['telefone'])): ?>
+                      <a href="<?= gerarLinkWhatsapp($u['telefone']) ?>" target="_blank" class="link-wpp">
+                        <i class="fa-brands fa-whatsapp"></i> <?= htmlspecialchars($u['telefone']) ?>
+                      </a>
+                    <?php else: ?>
+                      <span style="color: #94a3b8;">N/A</span>
+                    <?php endif; ?>
+                  </td>
+                  <td><code><?= htmlspecialchars($u['usuario']) ?></code></td>
+                  
+                  <!-- DATA DE CRIAÇÃO -->
+                  <td style="font-size: 11px; color: #64748b;">
+                    <?= !empty($u['criado_em']) ? date('d/m/Y H:i', strtotime($u['criado_em'])) : 'N/A' ?>
+                  </td>
+
+                  <!-- ÚLTIMO ACESSO -->
+                  <td style="font-size: 11px; color: #64748b;">
+                    <?= !empty($u['ultimo_acesso']) ? date('d/m/Y H:i', strtotime($u['ultimo_acesso'])) : '<span style="color:#94a3b8; font-style:italic;">Nunca acessou</span>' ?>
+                  </td>
+
+                  <td>
+                    <span class="badge-status status-<?= $u['status'] ?>">
+                      <?= strtoupper($u['status']) ?>
+                    </span>
+                  </td>
+                  <td>
+                    <?php if ($u['id'] !== $id_admin_logado): ?>
+                      <a href="admin_usuarios.php?acao=excluir&id=<?= $u['id'] ?>" class="btn-acao btn-excluir" onclick="return confirm('ATENÇÃO: Deseja apagar permanentemente o usuário <?= htmlspecialchars($u['nome']) ?>?')">
+                        <i class="fa-solid fa-trash"></i> Apagar
+                      </a>
+                    <?php else: ?>
+                      <span style="font-size: 11px; color: #94a3b8; font-style: italic;">Seu Usuário</span>
+                    <?php endif; ?>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            <?php else: ?>
               <tr>
-                <td>
-                  <strong><?= htmlspecialchars(($u['posto_graduacao'] ?? '') . ' ' . $u['nome']) ?></strong>
-                  <div style="font-size: 11px; color: #64748b;">RG: <?= htmlspecialchars($u['rg'] ?? 'N/A') ?> | CPF: <?= htmlspecialchars($u['cpf'] ?? 'N/A') ?></div>
-                </td>
-                <td><i class="fa-solid fa-building-shield" style="color: #64748b;"></i> <?= htmlspecialchars($u['unidade'] ?? 'N/A') ?></td>
-                <td>
-                  <?php if (!empty($u['telefone'])): ?>
-                    <a href="<?= gerarLinkWhatsapp($u['telefone']) ?>" target="_blank" class="link-wpp">
-                      <i class="fa-brands fa-whatsapp"></i> <?= htmlspecialchars($u['telefone']) ?>
-                    </a>
-                  <?php else: ?>
-                    <span style="color: #94a3b8;">N/A</span>
-                  <?php endif; ?>
-                </td>
-                <td><code><?= htmlspecialchars($u['usuario']) ?></code></td>
-                <td><span style="font-size: 11px; font-weight: 700; color: #475569;"><?= strtoupper($u['perfil']) ?></span></td>
-                <td>
-                  <span class="badge-status status-<?= $u['status'] ?>">
-                    <?= strtoupper($u['status']) ?>
-                  </span>
-                </td>
-                <td>
-                  <?php if ($u['id'] !== $id_admin_logado): ?>
-                    <a href="admin_usuarios.php?acao=excluir&id=<?= $u['id'] ?>" class="btn-acao btn-excluir" onclick="return confirm('ATENÇÃO: Deseja apagar permanentemente o usuário <?= htmlspecialchars($u['nome']) ?>?')">
-                      <i class="fa-solid fa-trash"></i> Apagar
-                    </a>
-                  <?php else: ?>
-                    <span style="font-size: 11px; color: #94a3b8; font-style: italic;">Seu Usuário</span>
-                  <?php endif; ?>
-                </td>
+                <td colspan="8" style="text-align: center; color: #64748b; padding: 15px;">Nenhum usuário cadastrado até o momento.</td>
               </tr>
-            <?php endforeach; ?>
+            <?php endif; ?>
           </tbody>
         </table>
+
+        <!-- BARRA DE PAGINAÇÃO -->
+        <?php if ($total_paginas > 1): ?>
+          <div class="paginacao">
+            <?php if ($pagina_atual > 1): ?>
+              <a href="?pagina=<?= $pagina_atual - 1 ?>">&laquo; Anterior</a>
+            <?php endif; ?>
+
+            <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
+              <a href="?pagina=<?= $i ?>" class="<?= ($i === $pagina_atual) ? 'ativa' : '' ?>"><?= $i ?></a>
+            <?php endfor; ?>
+
+            <?php if ($pagina_atual < $total_paginas): ?>
+              <a href="?pagina=<?= $pagina_atual + 1 ?>">Próximo &raquo;</a>
+            <?php endif; ?>
+          </div>
+        <?php endif; ?>
+
       </div>
 
     </div>

@@ -31,6 +31,10 @@ if ($user && password_verify($senha, $user['senha'])) {
         header('Location: login.php');
         exit;
     }
+    
+    // ATUALIZA A DATA E HORA DO ÚLTIMO ACESSO NO BANCO DE DADOS
+    $stmt_acesso = $pdo->prepare("UPDATE usuarios SET ultimo_acesso = NOW() WHERE id = :id");
+    $stmt_acesso->execute(['id' => $user['id']]);
 
     // Salva perfil completo na sessão
     $_SESSION['usuario_id']              = $user['id'];
@@ -43,7 +47,7 @@ if ($user && password_verify($senha, $user['senha'])) {
     header('Location: index.php');
     exit;
 } else {
-    // ⚠️ O QUE FALTAVA: Trata usuário inexistente ou senha errada
+    // Trata usuário inexistente ou senha errada
     $_SESSION['erro_login'] = 'Usuário ou senha incorretos.';
     header('Location: login.php');
     exit;

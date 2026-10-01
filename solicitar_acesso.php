@@ -2,11 +2,25 @@
 session_start();
 require_once 'db.php';
 
+// Leitura das mensagens de erro/sucesso armazenadas na sessão
+$mensagem = '';
+$tipo_msg = '';
+
+if (!empty($_SESSION['erro_cadastro'])) {
+  $mensagem = $_SESSION['erro_cadastro'];
+  $tipo_msg = 'erro'; // Ajuste conforme a classe CSS de erro do seu estilo
+  unset($_SESSION['erro_cadastro']);
+} elseif (!empty($_SESSION['sucesso_cadastro'])) {
+  $mensagem = $_SESSION['sucesso_cadastro'];
+  $tipo_msg = 'sucesso';
+  unset($_SESSION['sucesso_cadastro']);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $nome            = trim($_POST['nome'] ?? '');
   $rg              = trim($_POST['rg'] ?? '');
   $cpf             = trim($_POST['cpf'] ?? '');
-  $email           = trim($_POST['email'] ?? ''); // <--- 1. Captura o e-mail
+  $email           = trim($_POST['email'] ?? '');
   $posto_graduacao = trim($_POST['posto_graduacao'] ?? '');
   $unidade         = trim($_POST['unidade'] ?? '');
   $telefone        = trim($_POST['telefone'] ?? '');
@@ -16,40 +30,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   // Validação de campos obrigatórios
   if (!empty($nome) && !empty($rg) && !empty($cpf) && !empty($email) && !empty($posto_graduacao) && !empty($unidade) && !empty($telefone) && !empty($usuario) && !empty($senha)) {
 
-    // Verificação se o usuário ou CPF já estão cadastrados
-    $stmtCheck = $pdo->prepare('SELECT id FROM usuarios WHERE usuario = :usuario OR cpf = :cpf LIMIT 1');
-    $stmtCheck->execute(['usuario' => $usuario, 'cpf' => $cpf]);
+    try {
+      // 1. Verificação se o Usuário, CPF ou E-mail já existem no banco
+      $stmtCheck = $pdo->prepare('SELECT id FROM usuarios WHERE usuario = :usuario OR cpf = :cpf OR email = :email LIMIT 1');
+      $stmtCheck->execute(['usuario' => $usuario, 'cpf' => $cpf, 'email' => $email]);
 
-    if ($stmtCheck->fetch()) {
-      $_SESSION['erro_cadastro'] = 'Usuário ou CPF já cadastrados no sistema.';
+      if ($stmtCheck->fetch()) {
+        $_SESSION['erro_cadastro'] = 'Usuário, CPF ou E-mail já cadastrados no sistema.';
+        header('Location: solicitar_acesso.php');
+        exit;
+      }
+
+      // 2. Criptografia da senha
+      $hashSenha = password_hash($senha, PASSWORD_BCRYPT);
+
+      // 3. Inserção do usuário com perfil "usuario" e status "pendente"
+      $stmt = $pdo->prepare('
+              INSERT INTO usuarios (nome, rg, cpf, email, posto_graduacao, unidade, telefone, usuario, senha, perfil, status) 
+              VALUES (:nome, :rg, :cpf, :email, :posto, :unidade, :telefone, :usuario, :senha, "usuario", "pendente")
+          ');
+
+      $stmt->execute([
+        'nome'     => $nome,
+        'rg'       => $rg,
+        'cpf'      => $cpf,
+        'email'    => $email,
+        'posto'    => $posto_graduacao,
+        'unidade'  => $unidade,
+        'telefone' => $telefone,
+        'usuario'  => $usuario,
+        'senha'    => $hashSenha
+      ]);
+
+      $_SESSION['sucesso_cadastro'] = 'Solicitação realizada com sucesso! Aguarde a aprovação do Administrador.';
+      header('Location: login.php');
+      exit;
+
+    } catch (PDOException $e) {
+      // Em caso de erro na estrutura da tabela MySQL
+      $_SESSION['erro_cadastro'] = 'Erro ao processar solicitação no banco de dados. Tente novamente.';
       header('Location: solicitar_acesso.php');
       exit;
     }
 
-    // Criptografia da senha
-    $hashSenha = password_hash($senha, PASSWORD_BCRYPT);
-
-    // <--- 2. INSERT ATUALIZADO INCLUINDO A COLUNA EMAIL
-    $stmt = $pdo->prepare('
-            INSERT INTO usuarios (nome, rg, cpf, email, posto_graduacao, unidade, telefone, usuario, senha, perfil, status) 
-            VALUES (:nome, :rg, :cpf, :email, :posto, :unidade, :telefone, :usuario, :senha, "usuario", "pendente")
-        ');
-
-    $stmt->execute([
-      'nome'     => $nome,
-      'rg'       => $rg,
-      'cpf'      => $cpf,
-      'email'    => $email, // <--- 3. Passa o e-mail no array do PDO
-      'posto'    => $posto_graduacao,
-      'unidade'  => $unidade,
-      'telefone' => $telefone,
-      'usuario'  => $usuario,
-      'senha'    => $hashSenha
-    ]);
-
-    $_SESSION['sucesso_cadastro'] = 'Solicitação realizada com sucesso! Aguarde a aprovação do Administrador.';
-    header('Location: login.php');
-    exit;
   } else {
     $_SESSION['erro_cadastro'] = 'Preencha todos os campos obrigatórios.';
     header('Location: solicitar_acesso.php');
@@ -77,13 +100,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <p>Preencha os dados cadastrais para requerer acesso</p>
     </div>
 
+    <!-- CAIXA DE MENSAGENS -->
     <?php if (!empty($mensagem)): ?>
-      <div class="message-box <?= $tipo_msg ?>" style="display: block;"><?= htmlspecialchars($mensagem) ?></div>
+      <div class="message-box <?= htmlspecialchars($tipo_msg) ?>" style="display: block; padding: 10px; margin-bottom: 15px; border-radius: 6px; font-size: 13px; text-align: center;">
+        <?= htmlspecialchars($mensagem) ?>
+      </div>
     <?php endif; ?>
 
     <form method="POST" action="solicitar_acesso.php">
 
-      <!-- Posto / Graduação (Select) -->
+      <!-- Posto / Graduação -->
       <div class="input-group">
         <label for="posto_graduacao">Posto / Graduação</label>
         <div class="input-wrapper">
@@ -121,7 +147,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <option value="Soldado 1ª Classe">Soldado 1ª Classe (Sd. 1ª Cl.)</option>
               <option value="Soldado 2ª Classe">Soldado 2ª Classe (Sd. 2ª Cl. - Aluno)</option>
             </optgroup>
-
           </select>
         </div>
       </div>
@@ -135,8 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
       </div>
 
-
-      <!-- Campo E-mail no Formulário de Solicitação -->
+      <!-- E-mail -->
       <div class="input-group">
         <label for="email">E-mail Corporativo ou Pessoal</label>
         <div class="input-wrapper">
@@ -145,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
       </div>
 
-      <!-- RG e CPF (2 colunas) -->
+      <!-- RG e CPF -->
       <div style="display: flex; gap: 10px;">
         <div class="input-group" style="flex: 1;">
           <label for="rg">RG</label>
@@ -163,7 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
       </div>
 
-      <!-- Unidade / OPM (Select Completo PMPR) -->
+      <!-- Unidade / OPM -->
       <div class="input-group">
         <label for="unidade">Unidade / OPM</label>
         <div class="input-wrapper">
