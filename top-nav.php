@@ -4,7 +4,7 @@
 .top-nav {
     position: sticky !important;
     top: 0 !important;
-    z-index: 1000 !important;
+    z-index: 9999 !important;
     background-color: #ffffff;
     height: 50px;
     border-bottom: 1px solid #dddddd;
@@ -23,25 +23,22 @@
         height: 45px !important;
     }
 
-    /* Reduz a fonte do relógio e ícone no celular */
     .top-nav-center {
         font-size: 11px !important;
-        gap: 4px !important;
+        gap: 3px !important;
         margin-left: 5px !important;
     }
 
-    /* Oculta o selo de e-mails em telas pequenas */
     .badge-email {
         display: none !important;
     }
 
-    /* Adequa o nome e avatar do policial */
     .user-profile span {
         font-size: 11px !important;
         max-width: 85px;
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis; /* Adiciona '...' se o nome for longo */
+        text-overflow: ellipsis;
     }
 
     .user-avatar {
@@ -78,8 +75,12 @@
     </div>
 </div>
 
-<!-- LÓGICA GLOBAL DE ALTERNÂNCIA DA SIDEBAR E RELÓGIO -->
+<!-- LÓGICA GLOBAL DA NAVBAR E PROTEÇÃO DO RELÓGIO -->
 <script>
+if (window.intervaloRelogioPMPR) {
+    clearInterval(window.intervaloRelogioPMPR);
+}
+
 function alternarSidebar() {
     const sidebar = document.getElementById('sidebar_menu') || document.querySelector('.sidebar');
     const iconeToggle = document.getElementById('btn-toggle-sidebar');
@@ -99,29 +100,54 @@ function alternarSidebar() {
     }
 }
 
-// Relógio em tempo real (Horário de Brasília)
+// Bloqueio contra sobrescrita de scripts externos
+window.bloqueioAtualizacao = false;
+
 function atualizarRelogio() {
     const elementoRelogio = document.getElementById('relogio-brasilia');
     if (!elementoRelogio) return;
 
     const agora = new Date();
-    const opcoesData = { 
-        timeZone: 'America/Sao_Paulo',
-        weekday: 'short', 
-        day: '2-digit', 
-        month: '2-digit', 
-        year: 'numeric',
-        hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit' 
-    };
+    const diasSemana = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+    const diaSemana = diasSemana[agora.getDay()];
 
-    const dataFormatada = new Intl.DateTimeFormat('pt-BR', opcoesData).format(agora);
-    elementoRelogio.innerText = dataFormatada.replace('.', '');
+    const dia = String(agora.getDate()).padStart(2, '0');
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
+    const ano = agora.getFullYear();
+
+    const horas = String(agora.getHours()).padStart(2, '0');
+    const minutos = String(agora.getMinutes()).padStart(2, '0');
+
+    const textoFormatado = `${diaSemana}, ${dia}/${mes}/${ano}, ${horas}:${minutos}`;
+
+    // Atualiza apenas se for diferente para evitar loop
+    if (elementoRelogio.innerText !== textoFormatado) {
+        window.bloqueioAtualizacao = true;
+        elementoRelogio.innerText = textoFormatado;
+        window.bloqueioAtualizacao = false;
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Auto-collapse do menu em mobile
+    const sidebar = document.getElementById('sidebar_menu') || document.querySelector('.sidebar');
+    if (window.innerWidth <= 768 && sidebar) {
+        sidebar.classList.add('hidden');
+    }
+
+    // 2. Proteção via Observer para garantir que nenhum outro script altere a data
+    const elementoRelogio = document.getElementById('relogio-brasilia');
+    if (elementoRelogio) {
+        const observer = new MutationObserver(() => {
+            if (!window.bloqueioAtualizacao) {
+                atualizarRelogio();
+            }
+        });
+        observer.observe(elementoRelogio, { childList: true, characterData: true, subtree: true });
+    }
+
+    // 3. Atualização contínua a cada minuto
     atualizarRelogio();
-    setInterval(atualizarRelogio, 1000);
+    window.intervaloRelogioPMPR = setInterval(atualizarRelogio, 60000);
 });
 </script>
