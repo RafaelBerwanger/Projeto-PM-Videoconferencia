@@ -18,12 +18,14 @@
         exit;
     }
 
-    $id_usuario =$_SESSION['usuario_id'];
-    $mensagem = '';$tipo_msg = '';
+    $id_usuario = $_SESSION['usuario_id'];
+    $mensagem = '';
+    $tipo_msg = '';
 
     // Função auxiliar para marcar o elemento 'selected' no select
-    function estaSelecionado($valorOpcao,$valorBanco) {
-        return ($valorOpcao ===$valorBanco) ? 'selected' : '';
+    function estaSelecionado($valorOpcao, $valorBanco)
+    {
+        return ($valorOpcao === $valorBanco) ? 'selected' : '';
     }
 
     // Processa a atualização do formulário
@@ -38,10 +40,12 @@
         $nova_senha      = trim($_POST['nova_senha'] ?? '');
 
         if (!empty($nome) && !empty($rg) && !empty($cpf) && !empty($email) && !empty($posto_graduacao) && !empty($unidade) && !empty($telefone)) {
-            
+
             if (!empty($nova_senha)) {
                 // Atualiza com nova senha + e-mail
-                $hashSenha = password_hash($nova_senha, PASSWORD_BCRYPT);$stmt = $pdo->prepare('UPDATE usuarios SET nome = :nome, rg = :rg, cpf = :cpf, email = :email, posto_graduacao = :posto, unidade = :unidade, telefone = :telefone, senha = :senha WHERE id = :id');$stmt->execute([
+                $hashSenha = password_hash($nova_senha, PASSWORD_BCRYPT);
+                $stmt = $pdo->prepare('UPDATE usuarios SET nome = :nome, rg = :rg, cpf = :cpf, email = :email, posto_graduacao = :posto, unidade = :unidade, telefone = :telefone, senha = :senha WHERE id = :id');
+                $stmt->execute([
                     'nome'     => $nome,
                     'rg'       => $rg,
                     'cpf'      => $cpf,
@@ -54,7 +58,8 @@
                 ]);
             } else {
                 // Atualiza dados + e-mail (sem alterar senha)
-                $stmt = $pdo->prepare('UPDATE usuarios SET nome = :nome, rg = :rg, cpf = :cpf, email = :email, posto_graduacao = :posto, unidade = :unidade, telefone = :telefone WHERE id = :id');$stmt->execute([
+                $stmt = $pdo->prepare('UPDATE usuarios SET nome = :nome, rg = :rg, cpf = :cpf, email = :email, posto_graduacao = :posto, unidade = :unidade, telefone = :telefone WHERE id = :id');
+                $stmt->execute([
                     'nome'     => $nome,
                     'rg'       => $rg,
                     'cpf'      => $cpf,
@@ -67,11 +72,12 @@
             }
 
             // Atualiza a sessão ativa
-            $_SESSION['usuario_nome']            =$nome;
-            $_SESSION['usuario_posto_graduacao'] =$posto_graduacao;
-            $_SESSION['usuario_unidade']         =$unidade;
+            $_SESSION['usuario_nome']            = $nome;
+            $_SESSION['usuario_posto_graduacao'] = $posto_graduacao;
+            $_SESSION['usuario_unidade']         = $unidade;
 
-            $mensagem = 'Dados do perfil atualizados com sucesso!';$tipo_msg = 'sucesso';
+            $mensagem = 'Dados do perfil atualizados com sucesso!';
+            $tipo_msg = 'sucesso';
         } else {
             $mensagem = 'Preencha todos os campos obrigatórios.';
             $tipo_msg = 'erro';
@@ -79,21 +85,21 @@
     }
 
     // Busca os dados atualizados do usuário no banco de dados (incluindo o e-mail)
-    $stmt =$pdo->prepare('SELECT * FROM usuarios WHERE id = :id LIMIT 1');
-    $stmt->execute(['id' =>$id_usuario]);
-    $user =$stmt->fetch();
+    $stmt = $pdo->prepare('SELECT * FROM usuarios WHERE id = :id LIMIT 1');
+    $stmt->execute(['id' => $id_usuario]);
+    $user = $stmt->fetch();
 
-    $valPosto       =$user['posto_graduacao'] ?? '';
-    $valUnidade     =$user['unidade'] ?? '';
-    $nome_usuario   =$_SESSION['usuario_nome'] ?? 'Policial Militar';
-    $perfil_usuario =$_SESSION['usuario_perfil'] ?? 'usuario';
+    $valPosto       = $user['posto_graduacao'] ?? '';
+    $valUnidade     = $user['unidade'] ?? '';
+    $nome_usuario   = $_SESSION['usuario_nome'] ?? 'Policial Militar';
+    $perfil_usuario = $_SESSION['usuario_perfil'] ?? 'usuario';
     ?>
 
     <!-- Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Ficheiros CSS da Intranet PMPR -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=1.0.1">
     <link rel="stylesheet" href="style_auxilio.css">
 
     <style>
@@ -106,11 +112,13 @@
             align-items: center;
             gap: 10px;
         }
+
         .msg-alerta.sucesso {
             background-color: #dcfce7;
             border: 1px solid #86efac;
             color: #166534;
         }
+
         .msg-alerta.erro {
             background-color: #fee2e2;
             border: 1px solid #fca5a5;

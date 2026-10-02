@@ -4,33 +4,33 @@ require_once 'db.php';
 
 // Bloqueia acesso de quem não estiver logado OU não for admin
 if (!isset($_SESSION['usuario_id']) || ($_SESSION['usuario_perfil'] ?? '') !== 'admin') {
-    header('Location: index.php');
-    exit;
+  header('Location: index.php');
+  exit;
 }
 
 $id_admin_logado = $_SESSION['usuario_id'];
 
 // Lógica de Ações (Aprovar / Recusar / Excluir)
 if (isset($_GET['acao']) && isset($_GET['id'])) {
-    $id   = (int) $_GET['id'];
-    $acao = $_GET['acao'];
+  $id   = (int) $_GET['id'];
+  $acao = $_GET['acao'];
 
-    if ($acao === 'aprovar') {
-        $stmt = $pdo->prepare('UPDATE usuarios SET status = "aprovado" WHERE id = :id');
-        $stmt->execute(['id' => $id]);
-    } elseif ($acao === 'recusar') {
-        $stmt = $pdo->prepare('UPDATE usuarios SET status = "recusado" WHERE id = :id');
-        $stmt->execute(['id' => $id]);
-    } elseif ($acao === 'excluir') {
-        // Trava de Segurança: Não permite que o próprio Admin se exclua
-        if ($id !== $id_admin_logado) {
-            $stmt = $pdo->prepare('DELETE FROM usuarios WHERE id = :id');
-            $stmt->execute(['id' => $id]);
-        }
+  if ($acao === 'aprovar') {
+    $stmt = $pdo->prepare('UPDATE usuarios SET status = "aprovado" WHERE id = :id');
+    $stmt->execute(['id' => $id]);
+  } elseif ($acao === 'recusar') {
+    $stmt = $pdo->prepare('UPDATE usuarios SET status = "recusado" WHERE id = :id');
+    $stmt->execute(['id' => $id]);
+  } elseif ($acao === 'excluir') {
+    // Trava de Segurança: Não permite que o próprio Admin se exclua
+    if ($id !== $id_admin_logado) {
+      $stmt = $pdo->prepare('DELETE FROM usuarios WHERE id = :id');
+      $stmt->execute(['id' => $id]);
     }
+  }
 
-    header('Location: admin_usuarios.php');
-    exit;
+  header('Location: admin_usuarios.php');
+  exit;
 }
 
 // -------------------------------------------------------------
@@ -56,39 +56,124 @@ $stmt_todos->execute();
 $todos = $stmt_todos->fetchAll();
 
 // Função auxiliar para gerar link do WhatsApp
-function gerarLinkWhatsapp($telefone) {
-    $numeroApenas = preg_replace('/\D/', '', $telefone);
-    if (strlen($numeroApenas) >= 10 && !str_starts_with($numeroApenas, '55')) {
-        $numeroApenas = '55' . $numeroApenas;
-    }
-    return 'https://wa.me/' . $numeroApenas;
+function gerarLinkWhatsapp($telefone)
+{
+  $numeroApenas = preg_replace('/\D/', '', $telefone);
+  if (strlen($numeroApenas) >= 10 && !str_starts_with($numeroApenas, '55')) {
+    $numeroApenas = '55' . $numeroApenas;
+  }
+  return 'https://wa.me/' . $numeroApenas;
 }
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestão de Usuários - Admin PMPR</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=1.0.1">
   <link rel="stylesheet" href="style_auxilio.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
-    .tabela-admin { width: 100%; border-collapse: collapse; margin-top: 15px; background: #ffffff; border-radius: 8px; overflow: hidden; font-size: 13px; border: 1px solid #cbd5e1; }
-    .tabela-admin th, .tabela-admin td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-    .tabela-admin th { background: #0f172a; color: #f8fafc; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
-    .btn-acao { padding: 5px 10px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; }
-    .btn-aprovar { background: #22c55e; color: #fff; }
-    .btn-aprovar:hover { background: #16a34a; }
-    .btn-recusar { background: #f59e0b; color: #fff; }
-    .btn-recusar:hover { background: #d97706; }
-    .btn-excluir { background: #ef4444; color: #fff; }
-    .btn-excluir:hover { background: #dc2626; }
-    .badge-status { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-    .status-aprovado { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
-    .status-recusado { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-    .link-wpp { color: #16a34a; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
-    .link-wpp:hover { text-decoration: underline; }
+    .tabela-admin {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 13px;
+      border: 1px solid #cbd5e1;
+    }
+
+    .tabela-admin th,
+    .tabela-admin td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .tabela-admin th {
+      background: #0f172a;
+      color: #f8fafc;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-acao {
+      padding: 5px 10px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .btn-aprovar {
+      background: #22c55e;
+      color: #fff;
+    }
+
+    .btn-aprovar:hover {
+      background: #16a34a;
+    }
+
+    .btn-recusar {
+      background: #f59e0b;
+      color: #fff;
+    }
+
+    .btn-recusar:hover {
+      background: #d97706;
+    }
+
+    .btn-excluir {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    .btn-excluir:hover {
+      background: #dc2626;
+    }
+
+    .badge-status {
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .status-aprovado {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+
+    .status-recusado {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    .link-wpp {
+      color: #16a34a;
+      text-decoration: none;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .link-wpp:hover {
+      text-decoration: underline;
+    }
 
     /* CARD DE CONTADOR E PAGINAÇÃO */
     .card-contador {
@@ -96,29 +181,71 @@ function gerarLinkWhatsapp($telefone) {
       border-left: 4px solid #2b80c5;
       padding: 15px 20px;
       border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
       display: inline-flex;
       align-items: center;
       gap: 15px;
       margin-bottom: 20px;
     }
-    .card-contador i { font-size: 28px; color: #2b80c5; }
-    .card-contador .titulo-card { font-size: 12px; color: #64748b; font-weight: bold; text-transform: uppercase; }
-    .card-contador .valor-card { font-size: 22px; font-weight: bold; color: #0f172a; }
 
-    .paginacao { display: flex; justify-content: center; gap: 6px; margin-top: 20px; }
-    .paginacao a, .paginacao span { padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 6px; text-decoration: none; color: #334155; font-size: 13px; background: #fff; }
-    .paginacao a:hover { background-color: #2b80c5; color: #fff; border-color: #2b80c5; }
-    .paginacao .ativa { background-color: #2b80c5; color: #fff; border-color: #2b80c5; font-weight: bold; }
+    .card-contador i {
+      font-size: 28px;
+      color: #2b80c5;
+    }
+
+    .card-contador .titulo-card {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .card-contador .valor-card {
+      font-size: 22px;
+      font-weight: bold;
+      color: #0f172a;
+    }
+
+    .paginacao {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 20px;
+    }
+
+    .paginacao a,
+    .paginacao span {
+      padding: 6px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      text-decoration: none;
+      color: #334155;
+      font-size: 13px;
+      background: #fff;
+    }
+
+    .paginacao a:hover {
+      background-color: #2b80c5;
+      color: #fff;
+      border-color: #2b80c5;
+    }
+
+    .paginacao .ativa {
+      background-color: #2b80c5;
+      color: #fff;
+      border-color: #2b80c5;
+      font-weight: bold;
+    }
   </style>
 </head>
+
 <body>
 
   <!-- BARRA LATERAL -->
   <?php require_once 'sidebar.php'; ?>
 
   <div class="main-wrapper">
-    
+
     <!-- NAV SUPERIOR -->
     <?php require_once 'top-nav.php'; ?>
 
@@ -127,7 +254,7 @@ function gerarLinkWhatsapp($telefone) {
     </div>
 
     <div class="content-area">
-      
+
       <!-- CARD DE TOTAL CADASTRADOS -->
       <div class="card-contador">
         <i class="fa-solid fa-users-gear"></i>
@@ -228,7 +355,7 @@ function gerarLinkWhatsapp($telefone) {
                     <?php endif; ?>
                   </td>
                   <td><code><?= htmlspecialchars($u['usuario']) ?></code></td>
-                  
+
                   <!-- DATA DE CRIAÇÃO -->
                   <td style="font-size: 11px; color: #64748b;">
                     <?= !empty($u['criado_em']) ? date('d/m/Y H:i', strtotime($u['criado_em'])) : 'N/A' ?>
@@ -290,4 +417,5 @@ function gerarLinkWhatsapp($telefone) {
   </div>
 
 </body>
+
 </html>
