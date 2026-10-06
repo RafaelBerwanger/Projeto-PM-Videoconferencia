@@ -1,5 +1,11 @@
 <?php
+
+// Configura o cookie para expirar assim que o navegador for fechado (lifetime = 0)
+ini_set('session.cookie_lifetime', 0);
+ini_set('session.use_strict_mode', 1);
+
 session_start();
+
 require_once 'db.php';
 
 if (!isset($_SESSION['usuario_id'])) {
