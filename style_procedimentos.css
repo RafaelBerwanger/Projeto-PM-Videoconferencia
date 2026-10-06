@@ -1,0 +1,309 @@
+/* ==========================================================================
+   ESTILOS DO MÓDULO DE PROCEDIMENTOS (Intranet PMPR)
+   ========================================================================== */
+
+/* Dashboard de Estatísticas */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 15px 20px;
+    border-left: 5px solid #2563eb;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stat-card.fatd {
+    border-left-color: #0284c7;
+}
+
+.stat-card.sindicancia {
+    border-left-color: #d97706;
+}
+
+.stat-card.ipm {
+    border-left-color: #dc2626;
+}
+
+.stat-card.conselhos {
+    border-left-color: #7c3aed;
+}
+
+.stat-card.it {
+    border-left-color: #059669;
+}
+
+/* Verde Esmeralda para IT */
+
+.stat-info h3 {
+    font-size: 22px;
+    margin: 0;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.stat-info p {
+    margin: 0;
+    font-size: 11px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-icon {
+    font-size: 26px;
+    opacity: 0.3;
+}
+
+/* Tabelas Personalizadas de Procedimentos */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+
+.custom-table th {
+    background-color: #f8fafc;
+    color: #475569;
+    padding: 12px 15px;
+    border-bottom: 2px solid #e2e8f0;
+    font-weight: 600;
+}
+
+.custom-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    vertical-align: middle;
+}
+
+.custom-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Badges de Status do Prazo */
+.badge-status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-andamento {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.badge-prazo {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.badge-vencido {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.badge-concluido {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+/* Modal de Novo/Editar Procedimento */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.modal-container {
+    background: #fff;
+    width: 90%;
+    max-width: 650px;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.modal-header {
+    background: #1e293b;
+    color: #fff;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.modal-close {
+    cursor: pointer;
+    font-size: 18px;
+    color: #94a3b8;
+}
+
+.modal-close:hover {
+    color: #fff;
+}
+
+.modal-body {
+    padding: 20px;
+    max-height: 75vh;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* NAVEGAÇÃO POR ABAS DO PROCEDIMENTO */
+.tabs-header {
+    display: flex;
+    gap: 5px;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 20px;
+    overflow-x: auto;
+}
+
+.tab-btn {
+    padding: 10px 18px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+.tab-btn.active {
+    background: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* TIMELINE DE ATOS DO PROCEDIMENTO */
+.timeline-container {
+    position: relative;
+    padding-left: 25px;
+    margin-top: 15px;
+}
+
+.timeline-container::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 5px;
+    bottom: 5px;
+    width: 2px;
+    background: #cbd5e1;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-icon {
+    position: absolute;
+    left: -25px;
+    top: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #2563eb;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+}
+
+.timeline-content {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px 15px;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.timeline-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: #1e293b;
+}
+
+.timeline-date {
+    font-size: 11px;
+    color: #64748b;
+}

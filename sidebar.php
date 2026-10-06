@@ -6,40 +6,41 @@ $perfil_usuario = $_SESSION['usuario_perfil'] ?? 'usuario';
 
 <!-- Estilos específicos para o botão mobile dentro da sidebar -->
 <style>
-/* Por padrão (Computador), oculta o botão inferior mobile */
-.mobile-toggle-footer {
-    display: none;
-}
-
-/* Regras exclusivas para Celular (telas menores que 768px) */
-@media (max-width: 768px) {
-    /* Esconde a setinha pequena do topo no celular */
-    .btn-toggle-desktop {
-        display: none !important;
-    }
-
-    /* Exibe o botão largo de recolher na parte inferior no celular */
+    /* Por padrão (Computador), oculta o botão inferior mobile */
     .mobile-toggle-footer {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        padding: 12px 15px;
-        margin: 15px 10px 5px 10px;
-        background-color: #1e293b;
-        color: #94a3b8;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 500;
-        border: 1px solid #334155;
+        display: none;
     }
 
-    .mobile-toggle-footer:active {
-        background-color: #334155;
-        color: #ffffff;
+    /* Regras exclusivas para Celular (telas menores que 768px) */
+    @media (max-width: 768px) {
+
+        /* Esconde a setinha pequena do topo no celular */
+        .btn-toggle-desktop {
+            display: none !important;
+        }
+
+        /* Exibe o botão largo de recolher na parte inferior no celular */
+        .mobile-toggle-footer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 15px;
+            margin: 15px 10px 5px 10px;
+            background-color: #1e293b;
+            color: #94a3b8;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid #334155;
+        }
+
+        .mobile-toggle-footer:active {
+            background-color: #334155;
+            color: #ffffff;
+        }
     }
-}
 </style>
 
 <div class="sidebar" id="sidebar_menu">
@@ -48,7 +49,7 @@ $perfil_usuario = $_SESSION['usuario_perfil'] ?? 'usuario';
             <img src="img/logo.png" alt="Logo PMPR" class="sidebar-logo">
             <span style="font-size: 14px; font-weight: bold;">Ajuda do Encarregado</span>
         </div>
-        
+
         <!-- Ícone para fechar no DESKTOP (fica no topo) -->
         <i class="fa-solid fa-chevron-left btn-toggle-desktop" id="btn-toggle-sidebar" onclick="alternarSidebar()" title="Ocultar Menu" style="cursor: pointer; font-size: 16px; color: #a0aec0; padding: 5px;"></i>
     </div>
@@ -70,6 +71,13 @@ $perfil_usuario = $_SESSION['usuario_perfil'] ?? 'usuario';
         <i class="fa-solid fa-file-pen"></i>
         <span>Oitivas Escritas</span>
     </a>
+
+    <a href="procedimentos.php" class="menu-item <?= ($pagina_atual === 'procedimentos.php') ? 'active' : '' ?>">
+        <i class="fa-solid fa-folder-open"></i>
+        <span>Procedimentos</span>
+    </a>
+
+
 
     <?php if ($perfil_usuario === 'admin'): ?>
         <div class="sidebar-title" style="margin-top: 15px; color: #f59e0b;">ADMINISTRAÇÃO</div>
