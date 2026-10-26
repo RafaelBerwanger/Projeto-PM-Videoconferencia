@@ -4,9 +4,10 @@ if (is_file(__DIR__ . '/config.php')) {
     require_once __DIR__ . '/config.php';
 }
 
-$host = defined('DB_HOST') ? DB_HOST : 'localhost';
-$db   = defined('DB_NAME') ? DB_NAME : 'encarregado';
-$user = defined('DB_USER') ? DB_USER : 'root';
+// trim(): espaços colados por engano no config.php impedem a conexão
+$host = defined('DB_HOST') ? trim(DB_HOST) : 'localhost';
+$db   = defined('DB_NAME') ? trim(DB_NAME) : 'encarregado';
+$user = defined('DB_USER') ? trim(DB_USER) : 'root';
 $pass = defined('DB_PASS') ? DB_PASS : ''; // No XAMPP a senha do root por padrão é vazia
 
 try {
