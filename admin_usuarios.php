@@ -1,36 +1,45 @@
 <?php
-session_start();
-require_once 'db.php';
+require_once 'sessao.php';
 
 // Bloqueia acesso de quem não estiver logado OU não for admin
-if (!isset($_SESSION['usuario_id']) || ($_SESSION['usuario_perfil'] ?? '') !== 'admin') {
-  header('Location: index.php');
-  exit;
-}
+$admin = exigirAdmin();
+$id_admin_logado = (int) $admin['id'];
 
-$id_admin_logado = $_SESSION['usuario_id'];
+// Lógica de Ações (Aprovar / Recusar / Excluir) — somente via POST com token CSRF
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $id   = (int) ($_POST['id'] ?? 0);
+  $acao = $_POST['acao'] ?? '';
 
-// Lógica de Ações (Aprovar / Recusar / Excluir)
-if (isset($_GET['acao']) && isset($_GET['id'])) {
-  $id   = (int) $_GET['id'];
-  $acao = $_GET['acao'];
-
-  if ($acao === 'aprovar') {
-    $stmt = $pdo->prepare('UPDATE usuarios SET status = "aprovado" WHERE id = :id');
-    $stmt->execute(['id' => $id]);
-  } elseif ($acao === 'recusar') {
-    $stmt = $pdo->prepare('UPDATE usuarios SET status = "recusado" WHERE id = :id');
-    $stmt->execute(['id' => $id]);
-  } elseif ($acao === 'excluir') {
-    // Trava de Segurança: Não permite que o próprio Admin se exclua
-    if ($id !== $id_admin_logado) {
+  if (csrf_valido() && $id > 0 && $id !== $id_admin_logado) {
+    if ($acao === 'aprovar') {
+      $stmt = $pdo->prepare("UPDATE usuarios SET status = 'aprovado' WHERE id = :id");
+      $stmt->execute(['id' => $id]);
+    } elseif ($acao === 'recusar') {
+      $stmt = $pdo->prepare("UPDATE usuarios SET status = 'recusado' WHERE id = :id");
+      $stmt->execute(['id' => $id]);
+    } elseif ($acao === 'excluir') {
+      // Trava de Segurança: o próprio Admin nunca chega aqui (verificado acima)
       $stmt = $pdo->prepare('DELETE FROM usuarios WHERE id = :id');
       $stmt->execute(['id' => $id]);
     }
   }
 
-  header('Location: admin_usuarios.php');
+  $pagina = max(1, (int) ($_POST['pagina'] ?? 1));
+  header('Location: admin_usuarios.php?pagina=' . $pagina);
   exit;
+}
+
+// Botão de ação em formulário POST (evita que um simples link/imagem dispare a ação)
+function botaoAcao(int $id, string $acao, string $classe, string $icone, string $rotulo, string $confirmacao = '', int $pagina = 1): string
+{
+  $onsubmit = $confirmacao !== '' ? ' onsubmit="return confirm(' . e(json_encode($confirmacao, JSON_UNESCAPED_UNICODE)) . ')"' : '';
+  return '<form method="POST" action="admin_usuarios.php" style="display:inline;"' . $onsubmit . '>'
+    . csrf_campo()
+    . '<input type="hidden" name="id" value="' . $id . '">'
+    . '<input type="hidden" name="acao" value="' . e($acao) . '">'
+    . '<input type="hidden" name="pagina" value="' . $pagina . '">'
+    . '<button type="submit" class="btn-acao ' . e($classe) . '"><i class="fa-solid ' . e($icone) . '"></i> ' . e($rotulo) . '</button>'
+    . '</form>';
 }
 
 // -------------------------------------------------------------
@@ -41,15 +50,15 @@ $pagina_atual = isset($_GET['pagina']) ? max(1, (int)$_GET['pagina']) : 1;
 $inicio = ($pagina_atual - 1) * $limite_por_pagina;
 
 // 1. Busca solicitações pendentes (todas)
-$pendentes = $pdo->query('SELECT * FROM usuarios WHERE status = "pendente" ORDER BY criado_em DESC')->fetchAll();
+$pendentes = $pdo->query("SELECT * FROM usuarios WHERE status = 'pendente' ORDER BY criado_em DESC")->fetchAll();
 
 // 2. Conta total de usuários cadastrados (aprovados ou recusados) para o Card e Paginação
-$total_cadastrados_stmt = $pdo->query('SELECT COUNT(*) FROM usuarios WHERE status != "pendente"');
-$total_cadastrados = $total_cadastrados_stmt->fetchColumn();
-$total_paginas = ceil($total_cadastrados / $limite_por_pagina);
+$total_cadastrados_stmt = $pdo->query("SELECT COUNT(*) FROM usuarios WHERE status != 'pendente'");
+$total_cadastrados = (int) $total_cadastrados_stmt->fetchColumn();
+$total_paginas = (int) ceil($total_cadastrados / $limite_por_pagina);
 
 // 3. Busca os usuários cadastrados com limites (Paginação)
-$stmt_todos = $pdo->prepare('SELECT * FROM usuarios WHERE status != "pendente" ORDER BY nome ASC LIMIT :inicio, :limite');
+$stmt_todos = $pdo->prepare("SELECT * FROM usuarios WHERE status != 'pendente' ORDER BY nome ASC LIMIT :inicio, :limite");
 $stmt_todos->bindValue(':inicio', $inicio, PDO::PARAM_INT);
 $stmt_todos->bindValue(':limite', $limite_por_pagina, PDO::PARAM_INT);
 $stmt_todos->execute();
@@ -59,7 +68,9 @@ $todos = $stmt_todos->fetchAll();
 function gerarLinkWhatsapp($telefone)
 {
   $numeroApenas = preg_replace('/\D/', '', $telefone);
-  if (strlen($numeroApenas) >= 10 && !str_starts_with($numeroApenas, '55')) {
+  // Números nacionais (10 ou 11 dígitos com DDD) recebem o código do Brasil.
+  // Não basta checar o prefixo "55": DDD 55 (RS) também começa assim.
+  if (strlen($numeroApenas) <= 11) {
     $numeroApenas = '55' . $numeroApenas;
   }
   return 'https://wa.me/' . $numeroApenas;
@@ -113,6 +124,8 @@ function gerarLinkWhatsapp($telefone)
       align-items: center;
       gap: 4px;
       transition: all 0.2s;
+      border: none;
+      cursor: pointer;
     }
 
     .btn-aprovar {
@@ -286,27 +299,27 @@ function gerarLinkWhatsapp($telefone)
               <?php foreach ($pendentes as $u): ?>
                 <tr>
                   <td>
-                    <strong><?= htmlspecialchars(($u['posto_graduacao'] ?? '') . ' ' . $u['nome']) ?></strong>
-                    <div style="font-size: 11px; color: #64748b;">RG: <?= htmlspecialchars($u['rg'] ?? 'N/A') ?> | CPF: <?= htmlspecialchars($u['cpf'] ?? 'N/A') ?></div>
+                    <strong><?= e(($u['posto_graduacao'] ?? '') . ' ' . $u['nome']) ?></strong>
+                    <div style="font-size: 11px; color: #64748b;">RG: <?= e($u['rg'] ?? 'N/A') ?> | CPF: <?= e($u['cpf'] ?? 'N/A') ?></div>
                   </td>
-                  <td><i class="fa-solid fa-building-shield" style="color: #64748b;"></i> <?= htmlspecialchars($u['unidade'] ?? 'N/A') ?></td>
+                  <td><i class="fa-solid fa-building-shield" style="color: #64748b;"></i> <?= e($u['unidade'] ?? 'N/A') ?></td>
                   <td>
                     <?php if (!empty($u['telefone'])): ?>
                       <a href="<?= gerarLinkWhatsapp($u['telefone']) ?>" target="_blank" class="link-wpp">
-                        <i class="fa-brands fa-whatsapp"></i> <?= htmlspecialchars($u['telefone']) ?>
+                        <i class="fa-brands fa-whatsapp"></i> <?= e($u['telefone']) ?>
                       </a>
                     <?php else: ?>
                       <span style="color: #94a3b8;">Sem telefone</span>
                     <?php endif; ?>
                   </td>
-                  <td><code><?= htmlspecialchars($u['usuario']) ?></code></td>
+                  <td><code><?= e($u['usuario']) ?></code></td>
                   <td style="font-size: 11px; color: #64748b;">
                     <?= !empty($u['criado_em']) ? date('d/m/Y H:i', strtotime($u['criado_em'])) : 'N/A' ?>
                   </td>
                   <td style="display: flex; gap: 4px;">
-                    <a href="admin_usuarios.php?acao=aprovar&id=<?= $u['id'] ?>" class="btn-acao btn-aprovar"><i class="fa-solid fa-check"></i> Aprovar</a>
-                    <a href="admin_usuarios.php?acao=recusar&id=<?= $u['id'] ?>" class="btn-acao btn-recusar" onclick="return confirm('Deseja recusar esta solicitação?')"><i class="fa-solid fa-xmark"></i> Negar</a>
-                    <a href="admin_usuarios.php?acao=excluir&id=<?= $u['id'] ?>" class="btn-acao btn-excluir" onclick="return confirm('Tem certeza que deseja EXCLUIR DEFINITIVAMENTE este registro?')"><i class="fa-solid fa-trash"></i> Excluir</a>
+                    <?= botaoAcao((int) $u['id'], 'aprovar', 'btn-aprovar', 'fa-check', 'Aprovar') ?>
+                    <?= botaoAcao((int) $u['id'], 'recusar', 'btn-recusar', 'fa-xmark', 'Negar', 'Deseja recusar esta solicitação?') ?>
+                    <?= botaoAcao((int) $u['id'], 'excluir', 'btn-excluir', 'fa-trash', 'Excluir', 'Tem certeza que deseja EXCLUIR DEFINITIVAMENTE este registro?') ?>
                   </td>
                 </tr>
               <?php endforeach; ?>
@@ -341,20 +354,20 @@ function gerarLinkWhatsapp($telefone)
               <?php foreach ($todos as $u): ?>
                 <tr>
                   <td>
-                    <strong><?= htmlspecialchars(($u['posto_graduacao'] ?? '') . ' ' . $u['nome']) ?></strong>
-                    <div style="font-size: 11px; color: #64748b;">RG: <?= htmlspecialchars($u['rg'] ?? 'N/A') ?> | CPF: <?= htmlspecialchars($u['cpf'] ?? 'N/A') ?></div>
+                    <strong><?= e(($u['posto_graduacao'] ?? '') . ' ' . $u['nome']) ?></strong>
+                    <div style="font-size: 11px; color: #64748b;">RG: <?= e($u['rg'] ?? 'N/A') ?> | CPF: <?= e($u['cpf'] ?? 'N/A') ?></div>
                   </td>
-                  <td><i class="fa-solid fa-building-shield" style="color: #64748b;"></i> <?= htmlspecialchars($u['unidade'] ?? 'N/A') ?></td>
+                  <td><i class="fa-solid fa-building-shield" style="color: #64748b;"></i> <?= e($u['unidade'] ?? 'N/A') ?></td>
                   <td>
                     <?php if (!empty($u['telefone'])): ?>
                       <a href="<?= gerarLinkWhatsapp($u['telefone']) ?>" target="_blank" class="link-wpp">
-                        <i class="fa-brands fa-whatsapp"></i> <?= htmlspecialchars($u['telefone']) ?>
+                        <i class="fa-brands fa-whatsapp"></i> <?= e($u['telefone']) ?>
                       </a>
                     <?php else: ?>
                       <span style="color: #94a3b8;">N/A</span>
                     <?php endif; ?>
                   </td>
-                  <td><code><?= htmlspecialchars($u['usuario']) ?></code></td>
+                  <td><code><?= e($u['usuario']) ?></code></td>
 
                   <!-- DATA DE CRIAÇÃO -->
                   <td style="font-size: 11px; color: #64748b;">
@@ -367,15 +380,18 @@ function gerarLinkWhatsapp($telefone)
                   </td>
 
                   <td>
-                    <span class="badge-status status-<?= $u['status'] ?>">
-                      <?= strtoupper($u['status']) ?>
+                    <span class="badge-status status-<?= e($u['status']) ?>">
+                      <?= e(mb_strtoupper($u['status'])) ?>
                     </span>
                   </td>
-                  <td>
-                    <?php if ($u['id'] !== $id_admin_logado): ?>
-                      <a href="admin_usuarios.php?acao=excluir&id=<?= $u['id'] ?>" class="btn-acao btn-excluir" onclick="return confirm('ATENÇÃO: Deseja apagar permanentemente o usuário <?= htmlspecialchars($u['nome']) ?>?')">
-                        <i class="fa-solid fa-trash"></i> Apagar
-                      </a>
+                  <td style="display: flex; gap: 4px;">
+                    <?php if ((int) $u['id'] !== $id_admin_logado): ?>
+                      <?php if ($u['status'] === 'recusado'): ?>
+                        <?= botaoAcao((int) $u['id'], 'aprovar', 'btn-aprovar', 'fa-check', 'Aprovar', '', $pagina_atual) ?>
+                      <?php elseif ($u['perfil'] !== 'admin'): ?>
+                        <?= botaoAcao((int) $u['id'], 'recusar', 'btn-recusar', 'fa-ban', 'Bloquear', 'Bloquear o acesso de ' . $u['nome'] . '?', $pagina_atual) ?>
+                      <?php endif; ?>
+                      <?= botaoAcao((int) $u['id'], 'excluir', 'btn-excluir', 'fa-trash', 'Apagar', 'ATENÇÃO: Deseja apagar permanentemente o usuário ' . $u['nome'] . '?', $pagina_atual) ?>
                     <?php else: ?>
                       <span style="font-size: 11px; color: #94a3b8; font-style: italic;">Seu Usuário</span>
                     <?php endif; ?>

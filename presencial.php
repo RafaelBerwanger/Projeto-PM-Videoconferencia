@@ -1,31 +1,36 @@
 <?php
+require_once 'sessao.php';
+require_once 'listas.php';
 
-// Configura o cookie para expirar assim que o navegador for fechado (lifetime = 0)
-ini_set('session.cookie_lifetime', 0);
-ini_set('session.use_strict_mode', 1);
-
-session_start();
-
-require_once 'db.php';
-
-if (!isset($_SESSION['usuario_id'])) {
-    header('Location: login.php');
-    exit;
-}
-
-$id_usuario = $_SESSION['usuario_id'];
-$stmt = $pdo->prepare('SELECT * FROM usuarios WHERE id = :id LIMIT 1');
-$stmt->execute(['id' => $id_usuario]);
-$user = $stmt->fetch();
+$user = exigirLogin();
 
 $valPostoEncarregado   = $user['posto_graduacao'] ?? '';
 $valUnidadeEncarregado = $user['unidade'] ?? '';
 
-// Função auxiliar para selecionar a opção do banco
-function estaSelecionado($valorOpcao, $valorBanco)
-{
-    return ($valorOpcao === $valorBanco) ? 'selected' : '';
+// Quando aberto a partir do dossiê (?proc_id=), já preenche tipo e número do procedimento
+$procTipo   = '';
+$procNumero = '';
+if (!empty($_GET['proc_id'])) {
+    $stmt = $pdo->prepare('SELECT tipo, numero FROM procedimentos WHERE id = :id AND id_usuario = :u LIMIT 1');
+    $stmt->execute(['id' => (int) $_GET['proc_id'], 'u' => (int) $user['id']]);
+    if ($proc = $stmt->fetch()) {
+        $mapaTipos  = ['CD' => 'CD/CJ', 'CJ' => 'CD/CJ', 'IT' => 'Inquérito Técnico'];
+        $procTipo   = $mapaTipos[$proc['tipo']] ?? $proc['tipo'];
+        $procNumero = $proc['numero'];
+    }
 }
+
+const LISTA_PROCEDIMENTOS = ['' => [
+    'IPM' => 'IPM', 'FATD' => 'FATD', 'SINDICÂNCIA' => 'SINDICÂNCIA', 'APFD' => 'APFD',
+    'CD/CJ' => 'CD/CJ', 'ADL' => 'ADL', 'Inquérito Técnico' => 'IT',
+]];
+const LISTA_QUADROS = ['' => [
+    'QOPM' => 'QOPM', 'QOEM PM' => 'QOEM PM', 'QOE PM' => 'QOE PM', 'QP PM' => 'QP PM', 'PM' => 'Sem quadro',
+]];
+
+// Quadro sugerido conforme o posto do encarregado (oficial x praça)
+$ehOficial = in_array($valPostoEncarregado, array_keys(LISTA_POSTOS['Oficiais Superiores'] + LISTA_POSTOS['Oficiais Intermediários e Subalternos']), true);
+$quadroSugerido = $ehOficial ? 'QOPM' : 'QP PM';
 ?>
 
 <!DOCTYPE html>
@@ -51,8 +56,9 @@ function estaSelecionado($valorOpcao, $valorBanco)
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment-with-locales.min.js"></script>
 
-    <script src="./functionsPresencial.js"></script>
-    <script src="./carregaCidadesIbge.js"></script>
+    <script src="./functionsPresencial.js?v=2.3"></script>
+    <script src="./carregaCidadesIbge.js?v=2.0"></script>
+    <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
 </head>
 
 <body>
@@ -73,7 +79,7 @@ function estaSelecionado($valorOpcao, $valorBanco)
 
         <div class="content-area">
 
-            <form id="formOitiva">
+            <form id="formOitiva" onsubmit="return false;">
 
                 <!-- DADOS DO ENCARREGADO -->
                 <div class="card" id="dados_encarregado">
@@ -85,7 +91,7 @@ function estaSelecionado($valorOpcao, $valorBanco)
                         <!-- Nome Encarregado (Puxado do BD) -->
                         <div class="form-group col-6">
                             <label for="entnome_enc">Nome:</label>
-                            <input id="entnome_enc" type="text" class="form-control" placeholder="Nome do Encarregado" value="<?= htmlspecialchars($user['nome'] ?? '') ?>">
+                            <input id="entnome_enc" type="text" class="form-control" placeholder="Nome do Encarregado" value="<?= e($user['nome'] ?? '') ?>">
                         </div>
 
                         <!-- CPF Encarregado (Puxado do BD) -->
@@ -93,74 +99,34 @@ function estaSelecionado($valorOpcao, $valorBanco)
                             <label for="entcni_enc"
                                 title="Na certidão, os 3 primeiros dígitos serão ocultados, bem como os dois últimos (ex: XXX.123.123-XX)">CPF/CIN:</label>
                             <input id="entcni_enc" type="text" class="form-control" maxlength="14"
-                                placeholder="000.000.000-00" value="<?= htmlspecialchars($user['cpf'] ?? '') ?>" onkeyup="aplicarMascaraCPF(this)">
+                                placeholder="000.000.000-00" value="<?= e($user['cpf'] ?? '') ?>" onkeyup="aplicarMascaraCPF(this)">
                         </div>
 
                         <!-- Posto/Graduação Encarregado -->
                         <div class="form-group col-3">
                             <label for="ent_posto">Posto/Graduação:</label>
                             <select id="ent_posto" class="form-control">
-                                <option value="" disabled>Selecione...</option>
-
-                                <optgroup label="Oficiais Superiores">
-                                    <option value="Cel." <?= estaSelecionado('Cel.', $valPostoEncarregado) ?>>Coronel (Cel.)</option>
-                                    <option value="Ten.-Cel." <?= estaSelecionado('Ten.-Cel.', $valPostoEncarregado) ?>>Tenente-Coronel (Ten.-Cel.)</option>
-                                    <option value="Maj." <?= estaSelecionado('Maj.', $valPostoEncarregado) ?>>Major (Maj.)</option>
-                                </optgroup>
-
-                                <optgroup label="Oficiais Intermediários e Subalternos">
-                                    <option value="Cap." <?= estaSelecionado('Cap.', $valPostoEncarregado) ?>>Capitão (Cap.)</option>
-                                    <option value="1º Ten." <?= estaSelecionado('1º Ten.', $valPostoEncarregado) ?>>1º Tenente (1º Ten.)</option>
-                                    <option value="2º Ten." <?= estaSelecionado('2º Ten.', $valPostoEncarregado) ?>>2º Tenente (2º Ten.)</option>
-                                    <option value="Asp. a Of." <?= estaSelecionado('Asp. a Of.', $valPostoEncarregado) ?>>Aspirante-a-Oficial (Asp. a Of.)</option>
-                                </optgroup>
-
-                                <optgroup label="Praças Especiais">
-                                    <option value="Cadete 3º Ano" <?= estaSelecionado('Cadete 3º Ano', $valPostoEncarregado) ?>>Cadete 3º Ano</option>
-                                    <option value="Cadete 2º Ano" <?= estaSelecionado('Cadete 2º Ano', $valPostoEncarregado) ?>>Cadete 2º Ano</option>
-                                    <option value="Cadete 1º Ano" <?= estaSelecionado('Cadete 1º Ano', $valPostoEncarregado) ?>>Cadete 1º Ano</option>
-                                </optgroup>
-
-                                <optgroup label="Praças Graduados">
-                                    <option value="Subten." <?= estaSelecionado('Subten.', $valPostoEncarregado) ?>>Subtenente (Subten.)</option>
-                                    <option value="1º Sgt." <?= estaSelecionado('1º Sgt.', $valPostoEncarregado) ?>>1º Sargento (1º Sgt.)</option>
-                                    <option value="2º Sgt." <?= estaSelecionado('2º Sgt.', $valPostoEncarregado) ?>>2º Sargento (2º Sgt.)</option>
-                                    <option value="3º Sgt." <?= estaSelecionado('3º Sgt.', $valPostoEncarregado) ?>>3º Sargento (3º Sgt.)</option>
-                                    <option value="Cabo" <?= estaSelecionado('Cabo', $valPostoEncarregado) ?>>Cabo (Cb.)</option>
-                                </optgroup>
-
-                                <optgroup label="Praças">
-                                    <option value="Soldado 1ª Classe" <?= estaSelecionado('Soldado 1ª Classe', $valPostoEncarregado) ?>>Soldado 1ª Classe (Sd. 1ª Cl.)</option>
-                                    <option value="Soldado 2ª Classe" <?= estaSelecionado('Soldado 2ª Classe', $valPostoEncarregado) ?>>Soldado 2ª Classe (Sd. 2ª Cl. - Aluno)</option>
-                                </optgroup>
+                                <?= renderOpcoes(LISTA_POSTOS, $valPostoEncarregado) ?>
                             </select>
                         </div>
 
                         <div class="form-group col-3">
                             <label for="quadro_enc">Quadro:</label>
                             <select id="quadro_enc" class="form-control">
-                                <option value="QP PM">QP PM</option>
-                                <option value="QOEM PM">QOEM PM</option>
-                                <option value="PM">Sem quadro</option>
+                                <?= renderOpcoes(LISTA_QUADROS, $quadroSugerido) ?>
                             </select>
                         </div>
 
                         <div class="form-group col-3">
                             <label for="ent_proc">Procedimento:</label>
                             <select id="ent_proc" class="form-control">
-                                <option value="IPM">IPM</option>
-                                <option value="FATD">FATD</option>
-                                <option value="SINDICÂNCIA">SINDICÂNCIA</option>
-                                <option value="APFD">APFD</option>
-                                <option value="CD/CJ">CD/CJ</option>
-                                <option value="ADL">ADL</option>
-                                <option value="Inquérito Técnico">IT</option>
+                                <?= renderOpcoes(LISTA_PROCEDIMENTOS, $procTipo ?: 'IPM') ?>
                             </select>
                         </div>
 
                         <div class="form-group col-2">
                             <label for="ent_num_proc">Número:</label>
-                            <input id="ent_num_proc" class="form-control" placeholder="Número do Procedimento">
+                            <input id="ent_num_proc" class="form-control" placeholder="Número do Procedimento" value="<?= e($procNumero) ?>">
                         </div>
 
                         <div class="form-group col-2">
@@ -181,23 +147,7 @@ function estaSelecionado($valorOpcao, $valorBanco)
                         <div class="form-group col-2">
                             <label for="opm">OPM:</label>
                             <select name="opm" id="opm" class="form-control">
-                                <option value="" disabled>Selecione a Unidade...</option>
-
-                                <optgroup label="Comandos Regionais (CRPM)">
-                                    <option value="1º COMANDO REGIONAL DE POLÍCIA MILITAR" <?= estaSelecionado('1º CRPM - Curitiba', $valUnidadeEncarregado) ?>>1º CRPM - Curitiba</option>
-                                    <option value="2º COMANDO REGIONAL DE POLÍCIA MILITAR" <?= estaSelecionado('2º CRPM - Londrina', $valUnidadeEncarregado) ?>>2º CRPM - Londrina</option>
-                                    <option value="3º COMANDO REGIONAL DE POLÍCIA MILITAR" <?= estaSelecionado('3º CRPM - Maringá', $valUnidadeEncarregado) ?>>3º CRPM - Maringá</option>
-                                    <option value="4º COMANDO REGIONAL DE POLÍCIA MILITAR" <?= estaSelecionado('4º CRPM - Ponta Grossa', $valUnidadeEncarregado) ?>>4º CRPM - Ponta Grossa</option>
-                                    <option value="5º COMANDO REGIONAL DE POLÍCIA MILITAR" <?= estaSelecionado('5º CRPM - Cascavel', $valUnidadeEncarregado) ?>>5º CRPM - Cascavel</option>
-                                    <option value="6º COMANDO REGIONAL DE POLÍCIA MILITAR" <?= estaSelecionado('6º CRPM - São José dos Pinhais', $valUnidadeEncarregado) ?>>6º CRPM - São José dos Pinhais</option>
-                                    <option value="7º COMANDO REGIONAL DE POLÍCIA MILITAR" <?= estaSelecionado('7º CRPM - Pato Branco', $valUnidadeEncarregado) ?>>7º CRPM - Pato Branco</option>
-                                </optgroup>
-
-                                <optgroup label="Batalhões de Polícia Militar (BPM)">
-                                    <option value="1º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('1º BPM - Ponta Grossa', $valUnidadeEncarregado) ?>>1º BPM - Ponta Grossa</option>
-                                    <option value="6º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('6º BPM - Cascavel', $valUnidadeEncarregado) ?>>6º BPM - Cascavel</option>
-                                    <option value="12º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('12º BPM - Curitiba', $valUnidadeEncarregado) ?>>12º BPM - Curitiba</option>
-                                </optgroup>
+                                <?= renderOpcoes(LISTA_UNIDADES, $valUnidadeEncarregado, 'Selecione a Unidade...') ?>
                             </select>
                         </div>
 
@@ -222,26 +172,14 @@ function estaSelecionado($valorOpcao, $valorBanco)
                                     <div class="form-group col-2">
                                         <label for="ent_posto_esc">Posto/Graduação:</label>
                                         <select id="ent_posto_esc" class="form-control">
-                                            <option value="" disabled selected>Selecione...</option>
-                                            <option value="Cap.">Capitão (Cap.)</option>
-                                            <option value="1º Ten.">1º Tenente (1º Ten.)</option>
-                                            <option value="2º Ten.">2º Tenente (2º Ten.)</option>
-                                            <option value="Subten.">Subtenente (Subten.)</option>
-                                            <option value="1º Sgt.">1º Sargento (1º Sgt.)</option>
-                                            <option value="2º Sgt.">2º Sargento (2º Sgt.)</option>
-                                            <option value="3º Sgt.">3º Sargento (3º Sgt.)</option>
-                                            <option value="Cabo">Cabo (Cb.)</option>
-                                            <option value="Soldado 1ª Classe">Soldado 1ª Classe (Sd. 1ª Cl.)</option>
+                                            <?= renderOpcoes(LISTA_POSTOS) ?>
                                         </select>
                                     </div>
 
                                     <div class="form-group col-2">
                                         <label for="quadro_esc">Quadro:</label>
                                         <select id="quadro_esc" class="form-control">
-                                            <option value="QP PM">QP PM</option>
-                                            <option value="QOE PM">QOE PM</option>
-                                            <option value="QOEM PM" selected>QOEM PM</option>
-                                            <option value="PM">Sem quadro</option>
+                                            <?= renderOpcoes(LISTA_QUADROS, 'QOEM PM') ?>
                                         </select>
                                     </div>
                                 </div>
@@ -468,8 +406,8 @@ function estaSelecionado($valorOpcao, $valorBanco)
                     <div class="form-grid">
                         <div class="form-group col-3">
                             <label for="est_oitiva">Estado (UF):</label>
-                            <select id="est_oitiva" class="form-control">
-                                <option value="PR">PR</option>
+                            <select id="est_oitiva" class="form-control" onchange="buscarCidadesIBGE(this.value, 'cidade')">
+                                <option value="PR">Paraná</option>
                             </select>
                         </div>
 
@@ -527,6 +465,10 @@ function estaSelecionado($valorOpcao, $valorBanco)
                         </div>
 
                         <textarea id="depoimento_txt" name="depoimento_txt" rows="10" style="width: 100%; padding: 10px; font-family: Arial, sans-serif; font-size: 14px;" placeholder="Digite ou clique em 'Ditado por Voz' para transcrever o depoimento falado..."></textarea>
+                        <div id="status_voz" style="font-size: 12px; margin-top: 6px; min-height: 16px;" aria-live="polite"></div>
+                        <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">
+                            <i class="fa-regular fa-lightbulb"></i> Pontuação por voz: diga <b>"vírgula"</b>, <b>"ponto final"</b>, <b>"dois pontos"</b>, <b>"ponto e vírgula"</b>, <b>"ponto de interrogação"</b>, <b>"nova linha"</b> ou <b>"novo parágrafo"</b>. Você pode corrigir o texto enquanto dita.
+                        </div>
                     </div>
                 </div>
 

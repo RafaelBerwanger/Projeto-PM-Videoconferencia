@@ -1,7 +1,7 @@
 <!-- BARRA LATERAL DA INTRANET PMPR (sidebar.php) -->
 <?php
-$pagina_atual = basename($_SERVER['PHP_SELF']);
-$perfil_usuario = $_SESSION['usuario_perfil'] ?? 'usuario';
+$pagina_menu = basename($_SERVER['PHP_SELF']);
+$perfil_menu = $_SESSION['usuario_perfil'] ?? 'operador';
 ?>
 
 <!-- Estilos específicos para o botão mobile dentro da sidebar -->
@@ -56,38 +56,40 @@ $perfil_usuario = $_SESSION['usuario_perfil'] ?? 'usuario';
 
     <div class="sidebar-title">NAVEGAÇÃO</div>
 
-    <a href="index.php" class="menu-item <?= ($pagina_atual === 'index.php') ? 'active' : '' ?>">
+    <a href="index.php" class="menu-item <?= ($pagina_menu === 'index.php') ? 'active' : '' ?>">
         <i class="fa-solid fa-house"></i>
         <span>Início</span>
     </a>
 
     <div class="sidebar-title">OITIVAS</div>
 
-    <a href="audiovisual.php" class="menu-item <?= ($pagina_atual === 'audiovisual.php') ? 'active' : '' ?>">
+    <a href="audiovisual.php" class="menu-item <?= ($pagina_menu === 'audiovisual.php') ? 'active' : '' ?>">
         <i class="fa-solid fa-video"></i>
         <span>Oitivas Audiovisuais</span>
     </a>
-    <a href="presencial.php" class="menu-item <?= ($pagina_atual === 'presencial.php') ? 'active' : '' ?>">
+    <a href="presencial.php" class="menu-item <?= ($pagina_menu === 'presencial.php') ? 'active' : '' ?>">
         <i class="fa-solid fa-file-pen"></i>
         <span>Oitivas Escritas</span>
     </a>
 
-    <a href="procedimentos.php" class="menu-item <?= ($pagina_atual === 'procedimentos.php') ? 'active' : '' ?>">
-        <i class="fa-solid fa-folder-open"></i>
-        <span>Procedimentos</span>
-    </a>
+    <?php if (MODULO_PROCEDIMENTOS_LIBERADO): ?>
+        <a href="procedimentos.php" class="menu-item <?= ($pagina_menu === 'procedimentos.php') ? 'active' : '' ?>">
+            <i class="fa-solid fa-folder-open"></i>
+            <span>Procedimentos</span>
+        </a>
+    <?php endif; ?>
 
 
 
-    <?php if ($perfil_usuario === 'admin'): ?>
+    <?php if ($perfil_menu === 'admin'): ?>
         <div class="sidebar-title" style="margin-top: 15px; color: #f59e0b;">ADMINISTRAÇÃO</div>
-        <a href="admin_usuarios.php" class="menu-item <?= ($pagina_atual === 'admin_usuarios.php') ? 'active' : '' ?>">
+        <a href="admin_usuarios.php" class="menu-item <?= ($pagina_menu === 'admin_usuarios.php') ? 'active' : '' ?>">
             <i class="fa-solid fa-user-gear" style="color: #f59e0b;"></i>
             <span>Gestão de Acessos</span>
         </a>
     <?php endif; ?>
 
-    <a href="meu_perfil.php" class="menu-item <?= ($pagina_atual === 'meu_perfil.php') ? 'active' : '' ?>">
+    <a href="meu_perfil.php" class="menu-item <?= ($pagina_menu === 'meu_perfil.php') ? 'active' : '' ?>">
         <i class="fa-solid fa-user-pen"></i>
         <span>Meu Perfil</span>
     </a>

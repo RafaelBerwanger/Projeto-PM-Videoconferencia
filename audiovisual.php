@@ -1,31 +1,19 @@
 <?php
+require_once 'sessao.php';
+require_once 'listas.php';
 
-// Configura o cookie para expirar assim que o navegador for fechado (lifetime = 0)
-ini_set('session.cookie_lifetime', 0);
-ini_set('session.use_strict_mode', 1);
-
-session_start();
-
-require_once 'db.php';
-
-if (!isset($_SESSION['usuario_id'])) {
-    header('Location: login.php');
-    exit;
-}
-
-$id_usuario = $_SESSION['usuario_id'];
-$stmt = $pdo->prepare('SELECT * FROM usuarios WHERE id = :id LIMIT 1');
-$stmt->execute(['id' => $id_usuario]);
-$user = $stmt->fetch();
+$user = exigirLogin();
 
 $valPostoEncarregado   = $user['posto_graduacao'] ?? '';
 $valUnidadeEncarregado = $user['unidade'] ?? '';
 
-// Função auxiliar para selecionar a opção do banco
-function estaSelecionado($valorOpcao, $valorBanco)
-{
-    return ($valorOpcao === $valorBanco) ? 'selected' : '';
-}
+const LISTA_QUADROS = ['' => [
+    'QOPM' => 'QOPM', 'QOEM PM' => 'QOEM PM', 'QOE PM' => 'QOE PM', 'QP PM' => 'QP PM', 'PM' => 'Sem quadro',
+]];
+
+// Quadro sugerido conforme o posto do encarregado (oficial x praça)
+$ehOficial = in_array($valPostoEncarregado, array_keys(LISTA_POSTOS['Oficiais Superiores'] + LISTA_POSTOS['Oficiais Intermediários e Subalternos']), true);
+$quadroSugerido = $ehOficial ? 'QOPM' : 'QP PM';
 ?>
 
 <!DOCTYPE html>
@@ -53,7 +41,37 @@ function estaSelecionado($valorOpcao, $valorBanco)
         crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment-with-locales.min.js"></script>
 
-    <script src="./functionsJS.js"></script>
+    <script src="./functionsJS.js?v=2.1"></script>
+    <script>
+        // Servidor MiroTalk P2P da sala de videoconferência (config.php)
+        window.CONFIG_OITIVA = <?= json_encode([
+            'dominio' => defined('MIROTALK_DOMINIO') ? MIROTALK_DOMINIO : 'p2p.mirotalk.com',
+        ]) ?>;
+    </script>
+    <script src="./oitivaVideo.js?v=2.0"></script>
+    <style>
+        .oitiva-botoes { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .oitiva-botoes .btn { font-size: 15px; padding: 12px 22px; }
+        .oitiva-botoes .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        #oitiva_painel { position: relative; margin-top: 12px; }
+        #oitiva_iframe { width: 100%; height: 460px; border: 0; border-radius: 8px; background: #0f172a; display: block; }
+        .oitiva-barra-flutuante { display: none; }
+        /* Durante a gravação a chamada flutua fixa na tela: continua visível (e gravada) ao rolar a página */
+        #oitiva_painel.flutuante {
+            position: fixed; right: 16px; bottom: 16px; width: 440px; max-width: calc(100vw - 32px);
+            z-index: 10000; margin: 0; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); border-radius: 10px;
+            background: #0f172a; padding: 6px;
+        }
+        #oitiva_painel.flutuante #oitiva_iframe { height: 270px; border-radius: 6px; }
+        #oitiva_painel.flutuante.ampliado { width: 760px; }
+        #oitiva_painel.flutuante.ampliado #oitiva_iframe { height: 460px; }
+        #oitiva_painel.flutuante .oitiva-barra-flutuante {
+            display: flex; justify-content: space-between; align-items: center; gap: 8px;
+            color: #fff; font-size: 12px; padding: 2px 4px 6px;
+        }
+        .oitiva-barra-flutuante button { background: #334155; color: #fff; border: 0; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px; }
+        .oitiva-barra-flutuante .parar { background: #dc2626; }
+    </style>
 </head>
 
 <body>
@@ -73,6 +91,61 @@ function estaSelecionado($valorOpcao, $valorBanco)
         </div>
 
         <div class="content-area">
+
+            <!-- OITIVA POR VIDEOCONFERÊNCIA COM GRAVAÇÃO INTEGRADA (MiroTalk P2P) -->
+            <div class="card" id="card_oitiva_video">
+                <div class="block-title">
+                    <i class="fa-solid fa-video"></i> Realizar a Oitiva por Videoconferência
+                    <span id="oitiva_rec" style="display:none; margin-left:auto; align-items:center; gap:6px; background:#dc2626; color:#fff; padding:3px 10px; border-radius:12px; font-size:12px;">
+                        <i class="fa-solid fa-circle fa-beat" style="font-size:8px;"></i> GRAVANDO <span id="oitiva_tempo">00:00:00</span>
+                    </span>
+                </div>
+
+                <p style="color:#64748b; margin-bottom:12px;">
+                    Abra a sala, envie o link ao depoente e use <b>Gravar</b> e <b>Encerrar</b>. O vídeo é salvo no seu computador e o relatório abaixo é preenchido sozinho.
+                    Se a oitiva já foi gravada em outro programa, carregue o arquivo em <b>Dados da Gravação</b>.
+                </p>
+
+                <div class="oitiva-botoes">
+                    <button type="button" id="btn_oitiva_sala" class="btn btn-blue" onclick="iniciarSalaOitiva()"><i class="fa-solid fa-door-open"></i> Abrir sala de oitiva</button>
+                    <button type="button" id="btn_oitiva_gravar" class="btn btn-green" onclick="gravarOitiva()" disabled><i class="fa-solid fa-circle"></i> Gravar</button>
+                    <button type="button" id="btn_oitiva_encerrar" class="btn" style="background:#dc2626;" onclick="encerrarOitiva()" disabled><i class="fa-solid fa-stop"></i> Encerrar</button>
+                    <a href="#" id="lnk_oitiva_intercorrencia" onclick="registrarIntercorrenciaOitiva(); return false;" style="display:none; color:#b45309; font-size:13px;"><i class="fa-solid fa-flag"></i> Registrar intercorrência</a>
+                </div>
+
+                <div id="oitiva_status" style="margin-top:10px; font-size:13px;" aria-live="polite"></div>
+
+                <div id="oitiva_sala" style="display:none;">
+                    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:12px; align-items:center;">
+                        <label for="oitiva_link" style="margin:0;">Link para o depoente:</label>
+                        <input id="oitiva_link" type="text" class="form-control" readonly style="flex:1; min-width:220px;">
+                        <button type="button" class="btn btn-blue" onclick="copiarLinkSala()"><i class="fa-solid fa-copy"></i> Copiar</button>
+                        <button type="button" class="btn btn-green" onclick="enviarLinkWhatsapp()"><i class="fa-brands fa-whatsapp"></i> Enviar</button>
+                    </div>
+
+                    <div id="oitiva_painel">
+                        <div class="oitiva-barra-flutuante">
+                            <span><i class="fa-solid fa-circle fa-beat" style="color:#ef4444; font-size:8px;"></i> Chamada em gravação</span>
+                            <span style="display:flex; gap:6px;">
+                                <button type="button" onclick="alternarTamanhoChamada()" title="Ampliar / reduzir"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>
+                                <button type="button" class="parar" onclick="encerrarOitiva()"><i class="fa-solid fa-stop"></i> Encerrar</button>
+                            </span>
+                        </div>
+                        <iframe id="oitiva_iframe" title="Sala de videoconferência"
+                            allow="camera; microphone; speaker-selection; display-capture; fullscreen; autoplay; picture-in-picture; screen-wake-lock"></iframe>
+                    </div>
+                </div>
+
+                <details style="margin-top:10px; font-size:12px; color:#64748b;">
+                    <summary style="cursor:pointer;">Dicas</summary>
+                    <ul style="margin:6px 0 0 18px; line-height:1.6;">
+                        <li>Use o <b>Google Chrome</b> ou o <b>Microsoft Edge</b> no computador. O depoente pode entrar pelo celular, sem instalar nada.</li>
+                        <li>Ao clicar em <b>Gravar</b>, confirme <b>Permitir</b> na janela do navegador (deixe marcado o áudio da guia).</li>
+                        <li>Use fone de ouvido para evitar eco.</li>
+                        <li>Não feche esta página durante a gravação. O vídeo não é enviado a nenhum servidor.</li>
+                    </ul>
+                </details>
+            </div>
 
             <!-- CARD DE CHECKLIST -->
             <div class="card" style="text-align: center;">
@@ -128,7 +201,7 @@ function estaSelecionado($valorOpcao, $valorBanco)
                 </div>
             </div>
 
-            <form>
+            <form onsubmit="return false;">
                 <!-- DADOS DO ENCARREGADO -->
                 <!-- DADOS DO ENCARREGADO -->
                 <div class="card" id="dados_encarregado">
@@ -140,7 +213,7 @@ function estaSelecionado($valorOpcao, $valorBanco)
                         <!-- Nome Encarregado (Puxado do BD) -->
                         <div class="form-group col-6">
                             <label for="entnome_enc">Nome:</label>
-                            <input id="entnome_enc" type="text" class="form-control" placeholder="Nome do Encarregado" value="<?= htmlspecialchars($user['nome'] ?? '') ?>">
+                            <input id="entnome_enc" type="text" class="form-control" placeholder="Nome do Encarregado" value="<?= e($user['nome'] ?? '') ?>">
                         </div>
 
                         <!-- CPF Encarregado (Puxado do BD) -->
@@ -148,55 +221,21 @@ function estaSelecionado($valorOpcao, $valorBanco)
                             <label for="entcni_enc"
                                 title="Na certidão, os 3 primeiros dígitos serão ocultados, bem como os dois últimos (ex: XXX.123.123-XX)">CPF/CIN:</label>
                             <input id="entcni_enc" type="text" class="form-control" maxlength="14"
-                                placeholder="000.000.000-00" value="<?= htmlspecialchars($user['cpf'] ?? '') ?>" onkeyup="aplicarMascaraCPF(this)">
+                                placeholder="000.000.000-00" value="<?= e($user['cpf'] ?? '') ?>" onkeyup="aplicarMascaraCPF(this)">
                         </div>
 
                         <!-- Posto/Graduação Encarregado (Padronizado e Pré-selecionado) -->
                         <div class="form-group col-3">
                             <label for="ent_posto">Posto/Graduação:</label>
                             <select id="ent_posto" class="form-control">
-                                <option value="" disabled>Selecione...</option>
-
-                                <optgroup label="Oficiais Superiores">
-                                    <option value="Cel." <?= estaSelecionado('Cel.', $valPostoEncarregado) ?>>Coronel (Cel.)</option>
-                                    <option value="Ten.-Cel." <?= estaSelecionado('Ten.-Cel.', $valPostoEncarregado) ?>>Tenente-Coronel (Ten.-Cel.)</option>
-                                    <option value="Maj." <?= estaSelecionado('Maj.', $valPostoEncarregado) ?>>Major (Maj.)</option>
-                                </optgroup>
-
-                                <optgroup label="Oficiais Intermediários e Subalternos">
-                                    <option value="Cap." <?= estaSelecionado('Cap.', $valPostoEncarregado) ?>>Capitão (Cap.)</option>
-                                    <option value="1º Ten." <?= estaSelecionado('1º Ten.', $valPostoEncarregado) ?>>1º Tenente (1º Ten.)</option>
-                                    <option value="2º Ten." <?= estaSelecionado('2º Ten.', $valPostoEncarregado) ?>>2º Tenente (2º Ten.)</option>
-                                    <option value="Asp. a Of." <?= estaSelecionado('Asp. a Of.', $valPostoEncarregado) ?>>Aspirante-a-Oficial (Asp. a Of.)</option>
-                                </optgroup>
-
-                                <optgroup label="Praças Especiais">
-                                    <option value="Cadete 3º Ano" <?= estaSelecionado('Cadete 3º Ano', $valPostoEncarregado) ?>>Cadete 3º Ano</option>
-                                    <option value="Cadete 2º Ano" <?= estaSelecionado('Cadete 2º Ano', $valPostoEncarregado) ?>>Cadete 2º Ano</option>
-                                    <option value="Cadete 1º Ano" <?= estaSelecionado('Cadete 1º Ano', $valPostoEncarregado) ?>>Cadete 1º Ano</option>
-                                </optgroup>
-
-                                <optgroup label="Praças Graduados">
-                                    <option value="Subten." <?= estaSelecionado('Subten.', $valPostoEncarregado) ?>>Subtenente (Subten.)</option>
-                                    <option value="1º Sgt." <?= estaSelecionado('1º Sgt.', $valPostoEncarregado) ?>>1º Sargento (1º Sgt.)</option>
-                                    <option value="2º Sgt." <?= estaSelecionado('2º Sgt.', $valPostoEncarregado) ?>>2º Sargento (2º Sgt.)</option>
-                                    <option value="3º Sgt." <?= estaSelecionado('3º Sgt.', $valPostoEncarregado) ?>>3º Sargento (3º Sgt.)</option>
-                                    <option value="Cabo" <?= estaSelecionado('Cabo', $valPostoEncarregado) ?>>Cabo (Cb.)</option>
-                                </optgroup>
-
-                                <optgroup label="Praças">
-                                    <option value="Soldado 1ª Classe" <?= estaSelecionado('Soldado 1ª Classe', $valPostoEncarregado) ?>>Soldado 1ª Classe (Sd. 1ª Cl.)</option>
-                                    <option value="Soldado 2ª Classe" <?= estaSelecionado('Soldado 2ª Classe', $valPostoEncarregado) ?>>Soldado 2ª Classe (Sd. 2ª Cl. - Aluno)</option>
-                                </optgroup>
+                                <?= renderOpcoes(LISTA_POSTOS, $valPostoEncarregado) ?>
                             </select>
                         </div>
 
                         <div class="form-group col-3">
                             <label for="quadro_enc">Quadro:</label>
                             <select id="quadro_enc" class="form-control">
-                                <option value="QP PM">QP PM</option>
-                                <option value="QOEM PM">QOEM PM</option>
-                                <option value="PM">Sem quadro</option>
+                                <?= renderOpcoes(LISTA_QUADROS, $quadroSugerido) ?>
                             </select>
                         </div>
 
@@ -237,85 +276,7 @@ function estaSelecionado($valorOpcao, $valorBanco)
                         <div class="form-group col-2">
                             <label for="opm">OPM:</label>
                             <select name="opm" id="opm" class="form-control">
-                                <option value="" disabled>Selecione a Unidade...</option>
-
-                                <optgroup label="Comandos Regionais (CRPM)">
-                                    <option value="1º COMANDO REGIONAL DE POLÍCIA MILITAR" <?= estaSelecionado('1º CRPM - Curitiba', $valUnidadeEncarregado) ?>>1º CRPM - Curitiba</option>
-                                    <option value="2º COMANDO REGIONAL DE POLÍCIA MILITAR" <?= estaSelecionado('2º CRPM - Londrina', $valUnidadeEncarregado) ?>>2º CRPM - Londrina</option>
-                                    <option value="3º COMANDO REGIONAL DE POLÍCIA MILITAR" <?= estaSelecionado('3º CRPM - Maringá', $valUnidadeEncarregado) ?>>3º CRPM - Maringá</option>
-                                    <option value="4º COMANDO REGIONAL DE POLÍCIA MILITAR" <?= estaSelecionado('4º CRPM - Ponta Grossa', $valUnidadeEncarregado) ?>>4º CRPM - Ponta Grossa</option>
-                                    <option value="5º COMANDO REGIONAL DE POLÍCIA MILITAR" <?= estaSelecionado('5º CRPM - Cascavel', $valUnidadeEncarregado) ?>>5º CRPM - Cascavel</option>
-                                    <option value="6º COMANDO REGIONAL DE POLÍCIA MILITAR" <?= estaSelecionado('6º CRPM - São José dos Pinhais', $valUnidadeEncarregado) ?>>6º CRPM - São José dos Pinhais</option>
-                                    <option value="7º COMANDO REGIONAL DE POLÍCIA MILITAR" <?= estaSelecionado('7º CRPM - Pato Branco', $valUnidadeEncarregado) ?>>7º CRPM - Pato Branco</option>
-                                </optgroup>
-
-                                <optgroup label="Comandos Especializados e Apoio">
-                                    <option value="CME - Curitiba" <?= estaSelecionado('CME - Curitiba', $valUnidadeEncarregado) ?>>CME - Curitiba</option>
-                                    <option value="CPE - Curitiba" <?= estaSelecionado('CPE - Curitiba', $valUnidadeEncarregado) ?>>CPE - Curitiba</option>
-                                    <option value="COMAV - Curitiba" <?= estaSelecionado('COMAV - Curitiba', $valUnidadeEncarregado) ?>>COMAV - Curitiba</option>
-                                    <option value="CIROCAM - Curitiba" <?= estaSelecionado('CIROCAM - Curitiba', $valUnidadeEncarregado) ?>>CIROCAM - Curitiba</option>
-                                    <option value="COPOM - Curitiba" <?= estaSelecionado('COPOM - Curitiba', $valUnidadeEncarregado) ?>>COPOM - Curitiba</option>
-                                </optgroup>
-
-                                <optgroup label="Batalhões de Polícia Militar (BPM)">
-                                    <option value="1º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('1º BPM - Ponta Grossa', $valUnidadeEncarregado) ?>>1º BPM - Ponta Grossa</option>
-                                    <option value="2º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('2º BPM - Jacarezinho', $valUnidadeEncarregado) ?>>2º BPM - Jacarezinho</option>
-                                    <option value="3º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('3º BPM - Pato Branco', $valUnidadeEncarregado) ?>>3º BPM - Pato Branco</option>
-                                    <option value="4º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('4º BPM - Maringá', $valUnidadeEncarregado) ?>>4º BPM - Maringá</option>
-                                    <option value="5º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('5º BPM - Londrina', $valUnidadeEncarregado) ?>>5º BPM - Londrina</option>
-                                    <option value="6º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('6º BPM - Cascavel', $valUnidadeEncarregado) ?>>6º BPM - Cascavel</option>
-                                    <option value="7º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('7º BPM - Cruzeiro do Oeste', $valUnidadeEncarregado) ?>>7º BPM - Cruzeiro do Oeste</option>
-                                    <option value="8º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('8º BPM - Paranavaí', $valUnidadeEncarregado) ?>>8º BPM - Paranavaí</option>
-                                    <option value="9º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('9º BPM - Paranaguá', $valUnidadeEncarregado) ?>>9º BPM - Paranaguá</option>
-                                    <option value="10º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('10º BPM - Apucarana', $valUnidadeEncarregado) ?>>10º BPM - Apucarana</option>
-                                    <option value="11º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('11º BPM - Campo Mourão', $valUnidadeEncarregado) ?>>11º BPM - Campo Mourão</option>
-                                    <option value="12º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('12º BPM - Curitiba', $valUnidadeEncarregado) ?>>12º BPM - Curitiba</option>
-                                    <option value="13º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('13º BPM - Curitiba', $valUnidadeEncarregado) ?>>13º BPM - Curitiba</option>
-                                    <option value="14º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('14º BPM - Foz do Iguaçu', $valUnidadeEncarregado) ?>>14º BPM - Foz do Iguaçu</option>
-                                    <option value="15º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('15º BPM - Rolândia', $valUnidadeEncarregado) ?>>15º BPM - Rolândia</option>
-                                    <option value="16º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('16º BPM - Guarapuava', $valUnidadeEncarregado) ?>>16º BPM - Guarapuava</option>
-                                    <option value="17º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('17º BPM - São José dos Pinhais', $valUnidadeEncarregado) ?>>17º BPM - São José dos Pinhais</option>
-                                    <option value="18º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('18º BPM - Cornélio Procópio', $valUnidadeEncarregado) ?>>18º BPM - Cornélio Procópio</option>
-                                    <option value="19º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('19º BPM - Toledo', $valUnidadeEncarregado) ?>>19º BPM - Toledo</option>
-                                    <option value="20º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('20º BPM - Curitiba', $valUnidadeEncarregado) ?>>20º BPM - Curitiba</option>
-                                    <option value="21º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('21º BPM - Francisco Beltrão', $valUnidadeEncarregado) ?>>21º BPM - Francisco Beltrão</option>
-                                    <option value="22º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('22º BPM - Colombo', $valUnidadeEncarregado) ?>>22º BPM - Colombo</option>
-                                    <option value="23º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('23º BPM – Curitiba', $valUnidadeEncarregado) ?>>23º BPM – Curitiba</option>
-                                    <option value="25º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('25º BPM - Umuarama', $valUnidadeEncarregado) ?>>25º BPM - Umuarama</option>
-                                    <option value="26º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('26º BPM - Telêmaco Borba', $valUnidadeEncarregado) ?>>26º BPM - Telêmaco Borba</option>
-                                    <option value="27º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('27º BPM - União da Vitória', $valUnidadeEncarregado) ?>>27º BPM - União da Vitória</option>
-                                    <option value="28° BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('28° BPM - Lapa', $valUnidadeEncarregado) ?>>28° BPM - Lapa</option>
-                                    <option value="29º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('29º BPM - Piraquara', $valUnidadeEncarregado) ?>>29º BPM - Piraquara</option>
-                                    <option value="30º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('30º BPM - Londrina', $valUnidadeEncarregado) ?>>30º BPM - Londrina</option>
-                                    <option value="31º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('31º BPM - Assis Chateaubriand', $valUnidadeEncarregado) ?>>31º BPM - Assis Chateaubriand</option>
-                                    <option value="32º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('32º BPM - Sarandi', $valUnidadeEncarregado) ?>>32º BPM - Sarandi</option>
-                                    <option value="33° BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('33° BPM - Curitiba', $valUnidadeEncarregado) ?>>33° BPM - Curitiba</option>
-                                    <option value="34º BATALHÃO DE POLÍCIA MILITAR" <?= estaSelecionado('34º BPM - Almirante Tamandaré', $valUnidadeEncarregado) ?>>34º BPM - Almirante Tamandaré</option>
-                                </optgroup>
-
-                                <optgroup label="Companhias Independentes (CIPM)">
-                                    <option value="3ª CIPM - Loanda" <?= estaSelecionado('3ª CIPM - Loanda', $valUnidadeEncarregado) ?>>3ª CIPM - Loanda</option>
-                                    <option value="5ª CIPM - Cianorte" <?= estaSelecionado('5ª CIPM - Cianorte', $valUnidadeEncarregado) ?>>5ª CIPM - Cianorte</option>
-                                    <option value="6ª CIPM - Ivaiporã" <?= estaSelecionado('6ª CIPM - Ivaiporã', $valUnidadeEncarregado) ?>>6ª CIPM - Ivaiporã</option>
-                                    <option value="7ª CIPM - Arapongas" <?= estaSelecionado('7ª CIPM - Arapongas', $valUnidadeEncarregado) ?>>7ª CIPM - Arapongas</option>
-                                    <option value="8ª CIPM - Irati" <?= estaSelecionado('8ª CIPM - Irati', $valUnidadeEncarregado) ?>>8ª CIPM - Irati</option>
-                                    <option value="9ª CIPM - Colorado" <?= estaSelecionado('9ª CIPM - Colorado', $valUnidadeEncarregado) ?>>9ª CIPM - Colorado</option>
-                                    <option value="10ª CIPM - Laranjeiras do Sul" <?= estaSelecionado('10ª CIPM - Laranjeiras do Sul', $valUnidadeEncarregado) ?>>10ª CIPM - Laranjeiras do Sul</option>
-                                    <option value="11ª CIPM - Cambé" <?= estaSelecionado('11ª CIPM - Cambé', $valUnidadeEncarregado) ?>>11ª CIPM - Cambé</option>
-                                    <option value="12ª CIPM - Palmas" <?= estaSelecionado('12ª CIPM - Palmas', $valUnidadeEncarregado) ?>>12ª CIPM - Palmas</option>
-                                </optgroup>
-
-                                <optgroup label="Batalhões Especializados">
-                                    <option value="BOPE - Piraquara" <?= estaSelecionado('BOPE - Piraquara', $valUnidadeEncarregado) ?>>BOPE - Piraquara</option>
-                                    <option value="BPAmb - São José dos Pinhais" <?= estaSelecionado('BPAmb - São José dos Pinhais', $valUnidadeEncarregado) ?>>BPAmb - São José dos Pinhais</option>
-                                    <option value="BPChoque - Curitiba" <?= estaSelecionado('BPChoque - Curitiba', $valUnidadeEncarregado) ?>>BPChoque - Curitiba</option>
-                                    <option value="BPEC - Curitiba" <?= estaSelecionado('BPEC - Curitiba', $valUnidadeEncarregado) ?>>BPEC - Curitiba</option>
-                                    <option value="BPFron - Marechal Cândido Rondon" <?= estaSelecionado('BPFron - Marechal Cândido Rondon', $valUnidadeEncarregado) ?>>BPFron - Marechal Cândido Rondon</option>
-                                    <option value="BPRONE - Curitiba" <?= estaSelecionado('BPRONE - Curitiba', $valUnidadeEncarregado) ?>>BPRONE - Curitiba</option>
-                                    <option value="BPRv - Curitiba" <?= estaSelecionado('BPRv - Curitiba', $valUnidadeEncarregado) ?>>BPRv - Curitiba</option>
-                                    <option value="BPTran - Curitiba" <?= estaSelecionado('BPTran - Curitiba', $valUnidadeEncarregado) ?>>BPTran - Curitiba</option>
-                                    <option value="RPMon - Curitiba" <?= estaSelecionado('RPMon - Curitiba', $valUnidadeEncarregado) ?>>RPMon - Curitiba</option>
-                                </optgroup>
+                                <?= renderOpcoes(LISTA_UNIDADES, $valUnidadeEncarregado, 'Selecione a Unidade...') ?>
                             </select>
                         </div>
 
@@ -341,49 +302,14 @@ function estaSelecionado($valorOpcao, $valorBanco)
                                     <div class="form-group col-2">
                                         <label for="ent_posto_esc">Posto/Graduação:</label>
                                         <select id="ent_posto_esc" class="form-control">
-                                            <option value="" disabled selected>Selecione...</option>
-
-                                            <optgroup label="Oficiais Superiores">
-                                                <option value="Cel.">Coronel (Cel.)</option>
-                                                <option value="Ten.-Cel.">Tenente-Coronel (Ten.-Cel.)</option>
-                                                <option value="Maj.">Major (Maj.)</option>
-                                            </optgroup>
-
-                                            <optgroup label="Oficiais Intermediários e Subalternos">
-                                                <option value="Cap.">Capitão (Cap.)</option>
-                                                <option value="1º Ten.">1º Tenente (1º Ten.)</option>
-                                                <option value="2º Ten.">2º Tenente (2º Ten.)</option>
-                                                <option value="Asp. a Of.">Aspirante-a-Oficial (Asp. a Of.)</option>
-                                            </optgroup>
-
-                                            <optgroup label="Praças Especiais">
-                                                <option value="Cadete 3º Ano">Cadete 3º Ano</option>
-                                                <option value="Cadete 2º Ano">Cadete 2º Ano</option>
-                                                <option value="Cadete 1º Ano">Cadete 1º Ano</option>
-                                            </optgroup>
-
-                                            <optgroup label="Praças Graduados">
-                                                <option value="Subten.">Subtenente (Subten.)</option>
-                                                <option value="1º Sgt.">1º Sargento (1º Sgt.)</option>
-                                                <option value="2º Sgt.">2º Sargento (2º Sgt.)</option>
-                                                <option value="3º Sgt.">3º Sargento (3º Sgt.)</option>
-                                                <option value="Cabo">Cabo (Cb.)</option>
-                                            </optgroup>
-
-                                            <optgroup label="Praças">
-                                                <option value="Soldado 1ª Classe">Soldado 1ª Classe (Sd. 1ª Cl.)</option>
-                                                <option value="Soldado 2ª Classe">Soldado 2ª Classe (Sd. 2ª Cl. - Aluno)</option>
-                                            </optgroup>
+                                            <?= renderOpcoes(LISTA_POSTOS) ?>
                                         </select>
                                     </div>
 
                                     <div class="form-group col-2">
                                         <label for="quadro_esc">Quadro:</label>
                                         <select id="quadro_esc" class="form-control">
-                                            <option value="QP PM">QP PM</option>
-                                            <option value="QOE PM">QOE PM</option>
-                                            <option value="QOEM PM" selected>QOEM PM</option>
-                                            <option value="PM">Sem quadro</option>
+                                            <?= renderOpcoes(LISTA_QUADROS, 'QOEM PM') ?>
                                         </select>
                                     </div>
                                 </div>
@@ -688,14 +614,12 @@ function estaSelecionado($valorOpcao, $valorBanco)
 
                 <!-- BOTÃO DE AÇÃO -->
                 <div class="btn-container" style="justify-content: center;">
-                    <button id="sbmt" type="button" class="btn btn-green"
-                        onclick="sbmt1(); func_alteracao(); formatar(); confirmar(); inc_cost(); inc_alt();">
+                    <button id="sbmt" type="button" class="btn btn-green" onclick="sbmt1();">
                         <i class="fa-solid fa-floppy-disk"></i> Gravar Formulário
                     </button>
                 </div>
-                <div id="btnconf" style="text-align: center; margin-top: 10px;"></div>
+                <div id="btnconf" class="btn-container" style="justify-content: center; margin-top: 10px;"></div>
                 <div id="mostradados" style="margin-top: 10px;"></div>
-                <div id="testpdf"></div>
             </form>
         </div>
 
@@ -704,31 +628,7 @@ function estaSelecionado($valorOpcao, $valorBanco)
 
     </div>
 
-    <script src="./auxilio.js"></script>
-
-    <script>
-        function atualizarRelogioBrasilia() {
-            // Obtém a data/hora ajustada para o fuso horário de Brasília (America/Sao_Paulo)
-            const opcoes = {
-                timeZone: 'America/Sao_Paulo',
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            };
-
-            const agora = new Date().toLocaleString('pt-BR', opcoes);
-            const [data, hora] = agora.split(', ');
-
-            document.getElementById('relogio-brasilia').textContent = `${data} - ${hora}`;
-        }
-
-        // Atualiza imediatamente e depois a cada 1 segundo (1000ms)
-        atualizarRelogioBrasilia();
-        setInterval(atualizarRelogioBrasilia, 1000);
-    </script>
+    <script src="./auxilio.js?v=2.0"></script>
 
 </body>
 

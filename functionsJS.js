@@ -1,11 +1,6 @@
 // -- VARIÁVEIS GLOBAIS ----
-document.querySelector('#testpdf').innerHTML = alteracao
-var cor = document.getElementById("sbmt")
 var capturedImage;
-// ESSA É A VARIAL PARA INCLUIR A IMAGEM NO JSPDF()
-var videoStartTime;
-var videoEndTime;
-var videoRecordingDate;
+// ESSA É A VARIÁVEL PARA INCLUIR A IMAGEM NO JSPDF()
 var sha1_umf
 var sha256_umf
 var sha1_doisf
@@ -16,209 +11,181 @@ var sha1_quatrof
 var sha256_quatrof
 var presenca;
 var resultado_data;
+var alteracao = "SEM ALTERAÇÕES SUBSTANCIAIS.";
+var costumes_resp = "nada disse";
+var advogado_resposta = "Parte não representada por advogado/defensor";
+var videoGlobal = null;
+var previaConfigurada = false;
 
 
 //--FUNÇÕES INÍCIO--
+
+// Lê o valor de um campo sem quebrar caso ele não exista na página
+function valorCampo(id) {
+    var el = document.getElementById(id);
+    return el ? el.value : "";
+}
+
+// Oculta os 3 primeiros e os 2 últimos dígitos do CPF (ex: XXX.123.123-XX), como informado no formulário
+function ocultarCPF(cpf) {
+    var d = String(cpf || "").replace(/\D/g, "");
+    if (d.length !== 11) return cpf || "";
+    return "XXX." + d.substr(3, 3) + "." + d.substr(6, 3) + "-XX";
+}
+
+// Exibe os campos para vídeos adicionais (2 a 4)
 function onClick() {
-
-    document.getElementById("ins_dois").innerHTML = '<br><input type="file" id="fileInput2" onchange="calculateHash2()">'
-
-    document.getElementById("ins_tres").innerHTML = '<br><input type="file" id="fileInput3" onchange="calculateHash3()">'
-
-    document.getElementById("ins_quatro").innerHTML = '<br><input type="file" id="fileInput4" onchange="calculateHash4()">'
-
-    //document.getElementById("ins_dois").style.display = "";
-    //document.getElementById("ins_tres").style.display = "";
-    //document.getElementById("ins_quatro").style.display = "";
+    ["dois", "tres", "quatro"].forEach(function (sufixo, i) {
+        var span = document.getElementById("ins_" + sufixo);
+        var n = i + 2;
+        if (!document.getElementById("fileInput" + n)) {
+            span.innerHTML = '<br><input type="file" id="fileInput' + n + '" class="form-control" onchange="calculateHashExtra(' + n + ')">';
+        }
+        span.style.display = "";
+    });
 }
 
 //Função Máscara de Telefone
 function aplicarMascaraTelefone() {
-    var telefone = document.getElementById("telef").value;
-    telefone = telefone.replace(/\D/g, "");
-    if (telefone.length > 10) {
-        telefone = telefone.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
-    } else {
-        telefone = telefone.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
-    }
-    document.getElementById("telef").value = telefone;
+    var el = document.getElementById("telef");
+    var telefone = el.value.replace(/\D/g, "").slice(0, 11);
+    telefone = telefone.replace(/^(\d{2})(\d)/, "($1) $2");
+    telefone = telefone.replace(/(\d)(\d{4})$/, "$1-$2");
+    el.value = telefone;
 }
 
 
 //Função Máscara de CPF
 function aplicarMascaraCPF(input) {
-    let cpf = input.value;
-
-    cpf = cpf.replace(/\D/g, "");                    // Remove todos os caracteres não numéricos
-
+    let cpf = input.value.replace(/\D/g, "").slice(0, 11); // Remove todos os caracteres não numéricos
     cpf = cpf.replace(/(\d{3})(\d)/, "$1.$2");       // Adiciona o primeiro ponto
-
     cpf = cpf.replace(/(\d{3})(\d)/, "$1.$2");       // Adiciona o segundo ponto
-
-    cpf = cpf.replace(/(\d{3})(\d{1,2})/, "$1-$2");  // Adiciona o traço
-
+    cpf = cpf.replace(/(\d{3})(\d{1,2})$/, "$1-$2"); // Adiciona o traço
     input.value = cpf;
-
 }
 
 
 //Função para pegar a idade a partir do campo de nascimento
 function pegaidade() {
-    let data_nasc = new Date(document.getElementById("entnasc").value);
+    var valor = document.getElementById("entnasc").value;
+    if (!valor) return;
+    // "T00:00:00" evita que a data seja interpretada em UTC (dia anterior no Brasil)
+    let data_nasc = new Date(valor + "T00:00:00");
     let data_atl = new Date();
-    idade_calc = data_atl.getFullYear() - data_nasc.getFullYear();
+    let idade_calc = data_atl.getFullYear() - data_nasc.getFullYear();
     if (data_atl.getMonth() < data_nasc.getMonth() || data_atl.getMonth() == data_nasc.getMonth() && data_atl.getDate() < data_nasc.getDate()) {
         idade_calc--;
-
     }
     document.getElementById('entidade').value = idade_calc;
-
 }
 
 //FUNÇÃO PARA GERAR PRÉVIA DO VÍDEO
-
+// Os ouvintes são registrados uma única vez; trocar o arquivo apenas troca a fonte do vídeo
 function geraprevia() {
-
-    //Parte de pegar a duração do video
     var fileInput = document.getElementById("fileInput");
     var file = fileInput.files[0];
-    var video = document.createElement("video");
-    video.src = URL.createObjectURL(file);
-    video.onloadedmetadata = function () {
-        var videoDuration = video.duration;
-        var videoMinutes = Math.floor(videoDuration / 60);
-        var videoSeconds = Math.floor(videoDuration % 60);
-        document.getElementById("min").value = videoMinutes
-        document.getElementById("seg").value = videoSeconds
-    }
-        ;
-    //fim da parte de pegar a duração do vídeo
+    if (!file) return;
 
-    //var fileInput= document.getElementById("fileInput");
     var previewCanvas = document.getElementById("preview-canvas");
 
-    var ouveLimpa = document.getElementById("limpar")
+    if (!previaConfigurada) {
+        previaConfigurada = true;
+        videoGlobal = document.createElement("video");
+        videoGlobal.muted = true; //para retirar o som da prévia de vídeo
 
-    //Pausar o vídeo quando Descer o mouse em Limpar Dados de Vídeo.
-    ouveLimpa.addEventListener("mousedown", function pausaVideo() {
-        video.pause()
-    })
+        //Parte de pegar a duração do vídeo
+        videoGlobal.addEventListener("loadedmetadata", function () {
+            // Vídeos gravados pelo navegador (MediaRecorder) não trazem a duração no
+            // arquivo (Infinity); nesse caso a duração já foi preenchida pela gravação
+            var videoDuration = videoGlobal.duration;
+            if (isFinite(videoDuration)) {
+                document.getElementById("min").value = Math.floor(videoDuration / 60);
+                document.getElementById("seg").value = Math.floor(videoDuration % 60);
+            }
 
-    ouveLimpa.addEventListener("mouseup", function limpaPrevia() {
-        let input_2 = document.getElementById("fileInput2");
-        let input_3 = document.getElementById("fileInput3");
-        let input_4 = document.getElementById("fileInput4");
-        if (input_2) {
-            input_2.value = '';
-            document.getElementById("sha1_dois").value = "";
-            document.getElementById("sha256_dois").value = "";
-            document.getElementById("se_dois").style.display = "none";
-
-        }
-        if (input_3) {
-            input_3.value = '';
-            document.getElementById("sha1_tres").value = "";
-            document.getElementById("sha256_tres").value = "";
-            document.getElementById("se_tres").style.display = "none";
-        }
-        if (input_4) {
-            input_4.value = '';
-            document.getElementById("sha1_quatro").value = "";
-            document.getElementById("sha256_quatro").value = "";
-            document.getElementById("se_quatro").style.display = "none";
-        }
-
-        document.getElementById("ins_dois").style.display = "none";
-        document.getElementById("ins_tres").style.display = "none";
-        document.getElementById("ins_quatro").style.display = "none";
-
-        document.getElementById("fileInput").value = "";
-        document.getElementById("sha1").value = "";
-        document.getElementById("sha256").value = "";
-        document.getElementById("min").value = "";
-        document.getElementById("seg").value = "";
-
-        document.getElementById("preview-canvas").getContext("2d").clearRect(0, 0, 350, 200);
-        document.getElementById("captured-image").src = "";
-        document.getElementById("captured-image").style.display = "none";
-        document.getElementById("intrucao").innerHTML = "";
-
-        verButton = document.getElementById("btnconf");
-        if (verButton) {
-            document.getElementById("btnconf").style.display = "none";
-        }
-
-    })
-
-    // Código para gerar a pré-visualização aqui
-
-    fileInput.addEventListener("change", function () {
-
-        //var video = document.createElement("video");
-        var videoURL = URL.createObjectURL(fileInput.files[0]);
-        video.src = videoURL;
-        video.muted = true;
-        //para retirar o som da prévia de vídeo
-
-        video.play();
-
-        video.addEventListener("loadedmetadata", function () {
             previewCanvas.width = 350;
             previewCanvas.height = 200;
-            document.getElementById("intrucao").innerHTML = '<br><div id="border" style="border: solid 2px red; border-width: 5%; animation: piscar 1s infinite;"><label id="piscar" style="color: red;">ATENÇÃO!</label></div><br><span style="margin-top: 0.1cm;"><strong>Clique sobre a prévia do vídeo para selecionar o momento do print desejado.</strong></span><br><br>'
+            document.getElementById("intrucao").innerHTML = '<br><div id="border" style="border: solid 2px red; animation: piscar 1s infinite;"><label id="piscar" style="color: red;">ATENÇÃO!</label></div><br><span style="margin-top: 0.1cm;"><strong>Clique sobre a prévia do vídeo para selecionar o momento do print desejado.</strong></span><br><br>';
         });
 
-        video.addEventListener("timeupdate", function () {
-            previewCanvas.getContext("2d").drawImage(video, 0, 0, 350, 200);
-
+        videoGlobal.addEventListener("timeupdate", function () {
+            previewCanvas.getContext("2d").drawImage(videoGlobal, 0, 0, 350, 200);
         });
 
         previewCanvas.addEventListener("click", function () {
+            if (!videoGlobal || !videoGlobal.src) return;
             var imgData = previewCanvas.toDataURL("image/png");
             var img = document.getElementById("captured-image");
             img.src = imgData;
             img.style.display = "block";
             // Atribuir a imagem para a variável global
             capturedImage = imgData;
-
         });
 
+        document.getElementById("limpar").addEventListener("click", limpaDadosVideo);
+    }
+
+    if (videoGlobal.src) {
+        URL.revokeObjectURL(videoGlobal.src);
+    }
+    videoGlobal.src = URL.createObjectURL(file);
+    videoGlobal.play();
+}
+
+// Limpa todos os dados de vídeo (arquivos, hashes, prévia e imagem capturada)
+function limpaDadosVideo() {
+    if (videoGlobal) {
+        videoGlobal.pause();
+        if (videoGlobal.src) URL.revokeObjectURL(videoGlobal.src);
+        videoGlobal.removeAttribute("src");
+        videoGlobal.load();
+    }
+
+    ["dois", "tres", "quatro"].forEach(function (sufixo) {
+        document.getElementById("ins_" + sufixo).innerHTML = "";
+        document.getElementById("ins_" + sufixo).style.display = "none";
+        document.getElementById("se_" + sufixo).innerHTML = "";
+        document.getElementById("se_" + sufixo).style.display = "none";
     });
 
-    videoGlobal = video;
+    document.getElementById("fileInput").value = "";
+    document.getElementById("sha1").value = "";
+    document.getElementById("sha256").value = "";
+    document.getElementById("min").value = "";
+    document.getElementById("seg").value = "";
+
+    document.getElementById("preview-canvas").getContext("2d").clearRect(0, 0, 350, 200);
+    document.getElementById("captured-image").src = "";
+    document.getElementById("captured-image").style.display = "none";
+    document.getElementById("intrucao").innerHTML = "";
+    capturedImage = undefined;
+
+    var verButton = document.getElementById("btnconf");
+    if (verButton) {
+        verButton.style.display = "none";
+    }
 }
 
 function limpaDados() {
-    document.getElementById("entnome").value = "";
-    // document.getElementById("entrg").value = "";
-    document.getElementById("entcin").value = "";
-    document.getElementById("entnasc").value = "";
-    document.getElementById("entidade").value = "";
-    document.getElementById("entmae").value = "";
-    document.getElementById("entpai").value = "";
-    document.getElementById("prof").value = "";
-    document.getElementById("telef").value = "";
-    document.getElementById("escol").value = "";
-    document.querySelector('input[name="estc"]:checked').value = "";
-    document.querySelector('#ent_presenca').value = "";
-    document.getElementById("entrua").value = "";
-    document.getElementById("entnumero").value = "";
-    document.getElementById("entbairro").value = "";
-    document.getElementById("entcomp").value = "";
-    document.getElementById("entmun").value = "";
-    document.getElementById("entest").value = "";
-    document.getElementById("datagrav").value = "";
-    document.getElementById("entinicio").value = "";
-    document.getElementById("entfim").value = "";
-    document.getElementById("ent_qualidade").value = "";
-    document.getElementById("ent_comp").value = "";
-    document.getElementById("min").value = "";
-    document.getElementById("seg").value = "";
-    verButton = document.getElementById("btnconf");
-    if (verButton) {
-        document.getElementById("btnconf").style.display = "none";
-    }
+    ["entnome", "entcin", "entnasc", "entidade", "entmae", "entpai", "prof", "telef",
+        "entrua", "entnumero", "entbairro", "entcomp", "entmun", "entest",
+        "datagrav", "entinicio", "entfim", "min", "seg"].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) el.value = "";
+        });
 
+    // Volta selects e rádios ao padrão (sem alterar o "value" das opções)
+    ["escol", "ent_presenca", "ent_qualidade", "ent_comp"].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.selectedIndex = el.querySelector("option[selected]") ? el.querySelector("option[selected]").index : 0;
+    });
+    var naoInf = document.getElementById("naoinf");
+    if (naoInf) naoInf.checked = true;
+
+    var verButton = document.getElementById("btnconf");
+    if (verButton) {
+        verButton.style.display = "none";
+    }
 }
 
 //funcao para inserir escriba
@@ -226,10 +193,9 @@ function insereEscriba() {
     let _display = document.getElementById("abre_escriba");
     if (_display.style.display == "none") {
         _display.style.display = "block";
-    } else if (_display.style.display == "block") {
-        nome_esc = document.getElementById("entnome_esc").value = null
-        cin_esc = document.getElementById("entcin_esc").value = null
-        posto_esc = document.getElementById("ent_posto_esc").value = null
+    } else {
+        document.getElementById("entnome_esc").value = "";
+        document.getElementById("entcin_esc").value = "";
         _display.style.display = "none";
     }
 }
@@ -240,19 +206,11 @@ function formatar() {
     let datagrav = document.getElementById("datagrav").value;
 
     if (!datagrav) {
-        console.error("Erro: Nenhuma data foi informada.");
-        return;
+        return "";
     }
 
-    // Criar a data sem influência de fuso horário
-    let date = new Date(datagrav + "T00:00:00");
-
-    // Adiciona um dia corretamente
-    date.setUTCDate(date.getUTCDate());
-
-    let date_dia = date.getUTCDate();
-    let date_mes = date.getUTCMonth();
-    let date_ano = date.getUTCFullYear();
+    // Lê a data sem influência de fuso horário
+    let [ano, mes, dia] = datagrav.split("-").map(Number);
 
     // Nomes dos meses
     const meses = [
@@ -260,279 +218,258 @@ function formatar() {
         "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
     ];
 
-    // Exibe a data formatada
-    let resultado_data = `Aos ${date_dia} dias do mês de ${meses[date_mes]} do ano de ${date_ano}`;
-    console.log(resultado_data);
-
-    return resultado_data;
+    if (dia === 1) {
+        return `Ao primeiro dia do mês de ${meses[mes - 1]} do ano de ${ano}`;
+    }
+    return `Aos ${dia} dias do mês de ${meses[mes - 1]} do ano de ${ano}`;
 }
-
-
 
 
 function func_alteracao() {
-    valor_alt = document.querySelector('input[name="ent_alt"]:checked').value
+    var marcado = document.querySelector('input[name="ent_alt"]:checked');
+    if (!marcado) return;
 
-    if (valor_alt === "sim") {
-        document.getElementById("texto_alt").innerHTML = `
-                <textarea id="altera_campo" rows="10" cols="35" maxlength="200" onkeyup="inc_alt()"></textarea> <br>  
-                `
+    if (marcado.value === "sim") {
+        // Só cria o campo se ainda não existir (não apaga o que já foi digitado)
+        if (!document.getElementById("altera_campo")) {
+            document.getElementById("texto_alt").innerHTML = `
+                <textarea id="altera_campo" class="form-control" rows="4" maxlength="200"></textarea>
+                `;
+        }
+    } else if (marcado.value === "nao") {
+        document.getElementById("texto_alt").innerHTML = "";
     }
-    else if (valor_alt === "nao") {
-        document.getElementById("texto_alt").innerHTML = ""
-        alteracao = "SEM ALTERAÇÕES SUBSTANCIAIS."
-
-    }
-
-}
-
-function inc_alt() {
-    alteracao = document.getElementById("altera_campo").value
-    document.getElementById("texto_alt").value = alteracao
-
-}
-
-function sbmt1() {
-
-    nome_enc = document.getElementById("entnome_enc").value
-    cni_enc = document.getElementById("entcni_enc").value
-    posto_enc = document.getElementById("ent_posto").value
-    quadro_enc = document.getElementById("quadro_enc").value
-    opm = document.getElementById("opm").value
-    crpm = document.getElementById("crpm").value
-    nome = document.getElementById("entnome").value
-    /* rg_depo = document.getElementById("entrg").value */
-    cin_dep = document.getElementById("entcin").value
-    nasc = document.getElementById("entnasc").value
-    formattedDate = moment(nasc).format("DD/MM/YYYY")
-    idad = document.getElementById("entidade").value
-    mae = document.getElementById("entmae").value
-    pai = document.getElementById("entpai").value
-    profissao = document.getElementById("prof").value
-    telefone = document.getElementById("telef").value
-    escolaridade = document.getElementById("escol").value
-    estcivil = document.querySelector('input[name="estc"]:checked').value
-    presenca = document.querySelector('#ent_presenca').value
-    rua = document.getElementById("entrua").value
-    numero = document.getElementById("entnumero").value
-    bairro = document.getElementById("entbairro").value
-    complemento = document.getElementById("entcomp").value
-    municipio = document.getElementById("entmun").value
-    estado = document.getElementById("entest").value
-    datagrav = document.getElementById("datagrav").value
-    inicgrav = document.getElementById("entinicio").value
-    termgrav = document.getElementById("entfim").value
-    num_proc = document.getElementById("ent_num_proc").value
-    nome_procedimento = document.getElementById("ent_proc").value
-    qualidade = document.getElementById("ent_qualidade").value
-    presta_compromisso = document.getElementById("ent_comp").value
-    cid_oitiva = document.getElementById("id_cidade").value
-    est_oitiva = document.getElementById("est_oitiva").value
-    loc_oitiva = document.getElementById("loc_oitiva").value
-    resultado_data = formatar();
-
-
-    //Dados do Escriba (se houver)
-    nome_esc = document.getElementById("entnome_esc").value
-    cin_esc = document.getElementById("entcin_esc").value
-    posto_esc = document.getElementById("ent_posto_esc").value
-    quadro_esc = document.getElementById("quadro_esc").value
-
-    min = document.getElementById("min").value
-    seg = document.getElementById("seg").value
-    time = `${min} minutos e ${seg} segundos`
-    document.getElementById("btnconf").style.display = "";
-    document.getElementById("mostradados").innerHTML = `<p><center>IMPORTANTE: Esse programa é derivado de um desenvolvimento INDEPENDENTE, criado para auxiliar na elaboração de relatórios de gravação audiovisual. Seu uso não dispensa a conferência que o encarregado deve fazer sobre os documentos.</center></p>`
 }
 
 function func_cost() {
     //funcao para selecionar costumes (com e sem campo)
+    var marcado = document.querySelector('input[name="ent_cost"]:checked');
+    if (!marcado) return;
 
-    costume = document.querySelector('input[name="ent_cost"]:checked').value;
-
-    if (costume === "sim") {
-
-        document.getElementById("p_texto").innerHTML = `
-        <textarea id="costumes_campo" rows="10" cols="35" maxlength="200" onkeyup="inc_cost()"></textarea> <br> 
-        `
+    if (marcado.value === "sim") {
+        if (!document.getElementById("costumes_campo")) {
+            document.getElementById("p_texto").innerHTML = `
+            <textarea id="costumes_campo" class="form-control" rows="4" maxlength="200"></textarea>
+            `;
+        }
+    } else if (marcado.value === "nao") {
+        document.getElementById("p_texto").innerHTML = "";
     }
-    else if (costume === "nao") {
-        document.getElementById("p_texto").innerHTML = " "
-        costumes_campo = "nada disse"
-    }
-
 }
 
 //Função para verificar seleção de advogado
 function adv_presente() {
-    adv_var = document.querySelector('input[name="ent_adv"]:checked').value
+    var marcado = document.querySelector('input[name="ent_adv"]:checked');
+    if (!marcado) return;
 
-    if (adv_var === "sim") {
-
-        document.getElementById("adv").innerHTML = `<br>
-        <input id="nome_adv" type="text" size="30" placeholder="nome do defensor" onchange="inc_adv()"></input><br>
-        <input id="oab_adv" type="text" size="7" placeholder="nº OAB" onchange="inc_adv()"></input>
-        <input id="est_oab" type="text" size="2" placeholder="UF" onchange="inc_adv()"></input>
+    if (marcado.value === "sim") {
+        document.getElementById("adv").innerHTML = `
+        <input id="nome_adv" type="text" class="form-control" placeholder="Nome do defensor" style="margin-bottom: 5px;">
+        <div style="display: flex; gap: 5px;">
+            <input id="oab_adv" type="text" class="form-control" placeholder="nº OAB">
+            <input id="est_oab" type="text" class="form-control" placeholder="UF" maxlength="2" style="max-width: 70px;">
+        </div>
             `
-    }
-    else if (adv_var === "nao") {
+    } else if (marcado.value === "nao") {
         document.getElementById("adv").innerHTML = ""
-        advogado_resposta = "Parte não representada por advogado/defensor"
     }
 }
 
-//Função para integrar variáveis de Advogado
-function inc_adv() {
-    oab = document.getElementById("oab_adv").value
-    nome_adv = document.getElementById("nome_adv").value
-    est_oab = document.getElementById("est_oab").value
-    advogado_resposta = `${nome_adv}, OAB nº ${oab} / ${est_oab}`
+// Lê as respostas de costumes, advogado e alterações. Retorna mensagem de erro ou "".
+function lerRespostasRadio() {
+    var cost = document.querySelector('input[name="ent_cost"]:checked');
+    var adv = document.querySelector('input[name="ent_adv"]:checked');
+    var alt = document.querySelector('input[name="ent_alt"]:checked');
 
+    if (!cost) return "Informe se o depoente disse algo aos costumes.";
+    if (!adv) return "Informe se havia advogado presente.";
+    if (!alt) return "Informe se houve alteração durante a gravação.";
+
+    if (cost.value === "sim") {
+        costumes_resp = valorCampo("costumes_campo").trim();
+        if (!costumes_resp) return "Descreva o que o depoente disse aos costumes.";
+    } else {
+        costumes_resp = "nada disse";
+    }
+
+    if (adv.value === "sim") {
+        var nomeAdv = valorCampo("nome_adv").trim();
+        if (!nomeAdv) return "Informe o nome do advogado/defensor.";
+        advogado_resposta = `${nomeAdv}, OAB nº ${valorCampo("oab_adv").trim()} / ${valorCampo("est_oab").trim().toUpperCase()}`;
+    } else {
+        advogado_resposta = "Parte não representada por advogado/defensor";
+    }
+
+    if (alt.value === "sim") {
+        alteracao = valorCampo("altera_campo").trim();
+        if (!alteracao) return "Descreva a alteração ocorrida na gravação.";
+    } else {
+        alteracao = "SEM ALTERAÇÕES SUBSTANCIAIS.";
+    }
+    return "";
 }
 
-//Função para integrar variável de costumes
-function inc_cost() {
-    costumes_campo = document.getElementById("costumes_campo").value
-    document.getElementById("p_texto").value = costumes_campo;
+// Calcula SHA-1 e SHA-256 lendo o arquivo em blocos (vídeos grandes não estouram a memória)
+function hashArquivo(file, aoProgredir, aoTerminar) {
+    var TAM_BLOCO = 8 * 1024 * 1024;
+    var sha256 = CryptoJS.algo.SHA256.create();
+    var sha1 = CryptoJS.algo.SHA1.create();
+    var posicao = 0;
 
+    function lerProximo() {
+        var reader = new FileReader();
+        reader.onload = function () {
+            var wordArray = CryptoJS.lib.WordArray.create(reader.result);
+            sha256.update(wordArray);
+            sha1.update(wordArray);
+            posicao += TAM_BLOCO;
+            if (posicao < file.size) {
+                aoProgredir(Math.floor((posicao / file.size) * 100));
+                lerProximo();
+            } else {
+                aoTerminar(
+                    sha1.finalize().toString(CryptoJS.enc.Hex).toUpperCase(),
+                    sha256.finalize().toString(CryptoJS.enc.Hex).toUpperCase()
+                );
+            }
+        };
+        reader.onerror = function () {
+            alert("Não foi possível ler o arquivo para calcular o HASH.");
+        };
+        reader.readAsArrayBuffer(file.slice(posicao, posicao + TAM_BLOCO));
+    }
+    lerProximo();
 }
 
-var ha_1_um, ha_um, ha_dois, ha_1_dois, ha_tres, ha_1_tres, ha_quatro, ha_1_quatro;
-// RESOLVER PROBLEMA DE ESCOPO
-
-//Funçaõ de Cálculo de HASH
+//Função de Cálculo de HASH (vídeo principal)
 function calculateHash() {
     let file = document.getElementById("fileInput").files[0];
-    let reader = new FileReader();
-    reader.onload = function () {
-        let arrayBuffer = reader.result;
-        let wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
-        let sha256 = CryptoJS.algo.SHA256.create();
-        let sha1 = CryptoJS.algo.SHA1.create();
-        let hash = sha256.update(wordArray).finalize();
-        let hash_sha1 = sha1.update(wordArray).finalize();
-        var ha = hash.toString(CryptoJS.enc.Hex);
-        var ha_1 = hash_sha1.toString(CryptoJS.enc.Hex);
-        var ha_um = ha.toUpperCase();
-        var ha_1_um = ha_1.toUpperCase();
-        console.log(hash.toString(CryptoJS.enc.Hex));
-        document.getElementById("sha256").value = ha_um;
-        document.getElementById("sha1").value = ha_1_um;
+    if (!file) return;
+    var campo1 = document.getElementById("sha1");
+    var campo256 = document.getElementById("sha256");
+    campo1.value = campo256.value = "Calculando... 0%";
 
-    }
-
-    reader.readAsArrayBuffer(file);
+    hashArquivo(file, function (pct) {
+        campo1.value = campo256.value = "Calculando... " + pct + "%";
+    }, function (h1, h256) {
+        campo1.value = h1;
+        campo256.value = h256;
+    });
 }
 
-function calculateHash2() {
+// Cálculo de HASH dos vídeos adicionais (2, 3 ou 4)
+function calculateHashExtra(n) {
+    var sufixo = { 2: "dois", 3: "tres", 4: "quatro" }[n];
+    let file = document.getElementById("fileInput" + n).files[0];
+    if (!file) return;
 
-    let file = document.getElementById("fileInput2").files[0];
+    var area = document.getElementById("se_" + sufixo);
+    area.innerHTML = `<label>SHA-1 [${n}]</label><input id="sha1_${sufixo}" type="text" class="form-control" readonly>
+        <label>SHA-256 [${n}]</label><input id="sha256_${sufixo}" type="text" class="form-control" readonly>`;
+    area.style.display = "";
 
-    let reader = new FileReader();
-    reader.onload = function () {
-        let arrayBuffer = reader.result;
-        let wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
-        let sha256 = CryptoJS.algo.SHA256.create();
-        let sha1 = CryptoJS.algo.SHA1.create();
-        let hash = sha256.update(wordArray).finalize();
-        let hash_sha1 = sha1.update(wordArray).finalize();
-        let ha = hash.toString(CryptoJS.enc.Hex);
-        let ha_1 = hash_sha1.toString(CryptoJS.enc.Hex);
-        var ha_dois = ha.toUpperCase();
-        var ha_1_dois = ha_1.toUpperCase();
-        console.log(ha_dois);
-        document.getElementById("se_dois").innerHTML = '<label>SHA-1[2]</label><input id="sha1_dois" type="text" size="80" style="margin-left: 30px;" readonly><br><label>SHA-256[2]</label><input id="sha256_dois" type="text" type="text" size="80" style="margin-left: 15px;" readonly><br>'
-        document.getElementById("se_dois").style.display = "";
-        document.getElementById("sha256_dois").value = ha_dois;
-        document.getElementById("sha1_dois").value = ha_1_dois;
+    var campo1 = document.getElementById("sha1_" + sufixo);
+    var campo256 = document.getElementById("sha256_" + sufixo);
+    campo1.value = campo256.value = "Calculando... 0%";
 
-    }
-
-    reader.readAsArrayBuffer(file);
-
+    hashArquivo(file, function (pct) {
+        campo1.value = campo256.value = "Calculando... " + pct + "%";
+    }, function (h1, h256) {
+        campo1.value = h1;
+        campo256.value = h256;
+    });
 }
 
-function calculateHash3() {
+// Mantidos por compatibilidade com chamadas antigas
+function calculateHash2() { calculateHashExtra(2); }
+function calculateHash3() { calculateHashExtra(3); }
+function calculateHash4() { calculateHashExtra(4); }
 
-    let file = document.getElementById("fileInput3").files[0];
+function sbmt1() {
 
-    let reader = new FileReader();
-    reader.onload = function () {
-        let arrayBuffer = reader.result;
-        let wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
-        let sha256 = CryptoJS.algo.SHA256.create();
-        let sha1 = CryptoJS.algo.SHA1.create();
-        let hash = sha256.update(wordArray).finalize();
-        let hash_sha1 = sha1.update(wordArray).finalize();
-        let ha = hash.toString(CryptoJS.enc.Hex);
-        let ha_1 = hash_sha1.toString(CryptoJS.enc.Hex);
-        var ha_tres = ha.toUpperCase();
-        var ha_1_tres = ha_1.toUpperCase();
-        console.log(ha_tres);
-        document.getElementById("se_tres").innerHTML = '<label>SHA-1[3]</label><input id="sha1_tres" type="text" size="80" style="margin-left: 30px;" readonly><br><label>SHA-256[3]</label><input id="sha256_tres" type="text" type="text" size="80" style="margin-left: 15px;" readonly><br>'
-        document.getElementById("se_tres").style.display = "";
-        document.getElementById("sha256_tres").value = ha_tres;
-        document.getElementById("sha1_tres").value = ha_1_tres;
-
+    var erroRadio = lerRespostasRadio();
+    if (erroRadio) {
+        alert(erroRadio);
+        return;
+    }
+    if (!valorCampo("entnome").trim()) {
+        alert("Informe o nome do depoente.");
+        return;
+    }
+    if (!valorCampo("datagrav")) {
+        alert("Informe a data da gravação.");
+        return;
+    }
+    if (!valorCampo("sha1") || valorCampo("sha1").indexOf("Calculando") === 0) {
+        alert("Carregue o arquivo da oitiva e aguarde o cálculo do HASH.");
+        return;
     }
 
-    reader.readAsArrayBuffer(file);
+    nome_enc = valorCampo("entnome_enc")
+    cni_enc = ocultarCPF(valorCampo("entcni_enc"))
+    posto_enc = valorCampo("ent_posto")
+    quadro_enc = valorCampo("quadro_enc") === "PM" ? "" : valorCampo("quadro_enc")
+    opm = valorCampo("opm")
+    crpm = valorCampo("crpm")
+    nome = valorCampo("entnome")
+    cin_dep = ocultarCPF(valorCampo("entcin"))
+    nasc = valorCampo("entnasc")
+    formattedDate = nasc ? moment(nasc).format("DD/MM/YYYY") : ""
+    idad = valorCampo("entidade")
+    mae = valorCampo("entmae")
+    pai = valorCampo("entpai")
+    profissao = valorCampo("prof")
+    telefone = valorCampo("telef")
+    escolaridade = valorCampo("escol")
+    var estcMarcado = document.querySelector('input[name="estc"]:checked')
+    estcivil = estcMarcado ? estcMarcado.value : "Não informado"
+    presenca = valorCampo("ent_presenca")
+    rua = valorCampo("entrua")
+    numero = valorCampo("entnumero")
+    bairro = valorCampo("entbairro")
+    complemento = valorCampo("entcomp")
+    municipio = valorCampo("entmun")
+    estado = valorCampo("entest")
+    datagrav = valorCampo("datagrav")
+    inicgrav = valorCampo("entinicio")
+    termgrav = valorCampo("entfim")
+    num_proc = valorCampo("ent_num_proc")
+    nome_procedimento = valorCampo("ent_proc")
+    qualidade = valorCampo("ent_qualidade")
+    presta_compromisso = valorCampo("ent_comp")
+    cid_oitiva = valorCampo("id_cidade")
+    est_oitiva = valorCampo("est_oitiva")
+    loc_oitiva = valorCampo("loc_oitiva")
+    resultado_data = formatar();
 
+
+    //Dados do Escriba (se houver)
+    nome_esc = valorCampo("entnome_esc").trim()
+    cin_esc = ocultarCPF(valorCampo("entcin_esc"))
+    posto_esc = valorCampo("ent_posto_esc")
+    quadro_esc = valorCampo("quadro_esc") === "PM" ? "" : valorCampo("quadro_esc")
+
+    min = valorCampo("min")
+    seg = valorCampo("seg")
+    time = `${min} minutos e ${seg} segundos`
+    document.getElementById("btnconf").style.display = "";
+    document.getElementById("mostradados").innerHTML = `<p style="text-align: center;">IMPORTANTE: Esse programa é derivado de um desenvolvimento INDEPENDENTE, criado para auxiliar na elaboração de relatórios de gravação audiovisual. Seu uso não dispensa a conferência que o encarregado deve fazer sobre os documentos.</p>`
+
+    confirmar();
 }
 
-function calculateHash4() {
-
-    let file = document.getElementById("fileInput4").files[0];
-
-    let reader = new FileReader();
-    reader.onload = function () {
-        let arrayBuffer = reader.result;
-        let wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
-        let sha256 = CryptoJS.algo.SHA256.create();
-        let sha1 = CryptoJS.algo.SHA1.create();
-        let hash = sha256.update(wordArray).finalize();
-        let hash_sha1 = sha1.update(wordArray).finalize();
-        let ha = hash.toString(CryptoJS.enc.Hex);
-        let ha_1 = hash_sha1.toString(CryptoJS.enc.Hex);
-        var ha_quatro = ha.toUpperCase();
-        var ha_1_quatro = ha_1.toUpperCase();
-        console.log(ha_quatro);
-        document.getElementById("se_quatro").innerHTML = '<label>SHA-1[4]</label><input id="sha1_quatro" type="text" size="80" style="margin-left: 30px;" readonly><br><label>SHA-256[4]</label><input id="sha256_quatro" type="text" type="text" size="80" style="margin-left: 15px;" readonly><br>'
-        document.getElementById("se_quatro").style.display = "";
-        document.getElementById("sha256_quatro").value = ha_quatro;
-        document.getElementById("sha1_quatro").value = ha_1_quatro;
-
-    }
-
-    reader.readAsArrayBuffer(file);
-
-}
-
-//Função para Confirmar e puxar o gerador de PF
+//Função para Confirmar e puxar o gerador de PDF
 function confirmar() {
-    document.getElementById("btnconf").innerHTML = "<button type='button' id='btnGera' value= 'Confirmar'onmouseenter='form_btnGera_entra()' onmouseleave='form_btnGera_sai()' onmouseup='form_btnGera_clickUP()' onmousedown='form_btnGera_click()' onclick='conf()'> Gerar PDF</button>"
+    document.getElementById("btnconf").innerHTML = "<button type='button' id='btnGera' class='btn btn-blue' onclick='conf()'><i class='fa-solid fa-file-pdf'></i> Gerar PDF</button>"
 
-    var sha1_um, sha256_um, sha1_dois, sha256_dois, sha1_tres, sha256_tres, sha1_quatro, sha256_quatro;
-
-    sha1_um = document.getElementById("sha1").value
-    sha1_umf = sha1_um;
-    sha256_um = document.getElementById("sha256").value
-    sha256_umf = sha256_um;
-
-    sha1_dois = document.getElementById("sha1_dois").value
-    sha1_doisf = sha1_dois;
-    sha256_dois = document.getElementById("sha256_dois").value
-    sha256_doisf = sha256_dois;
-
-    sha1_tres = document.getElementById("sha1_tres").value
-    sha1_tresf = sha1_tres;
-    sha256_tres = document.getElementById("sha256_tres").value
-    sha256_tresf = sha256_tres;
-
-    sha1_quatro = document.getElementById("sha1_quatro").value
-    sha1_quatrof = sha1_quatro;
-    sha256_quatro = document.getElementById("sha256_quatro").value
-    sha256_quatrof = sha256_quatro;
+    sha1_umf = valorCampo("sha1");
+    sha256_umf = valorCampo("sha256");
+    sha1_doisf = valorCampo("sha1_dois");
+    sha256_doisf = valorCampo("sha256_dois");
+    sha1_tresf = valorCampo("sha1_tres");
+    sha256_tresf = valorCampo("sha256_tres");
+    sha1_quatrof = valorCampo("sha1_quatro");
+    sha256_quatrof = valorCampo("sha256_quatro");
 }
 
 //Função para gerar o PDF
@@ -638,21 +575,21 @@ function conf() {
     if (presta_compromisso === 'sim') {
         comp_resp = 'Tendo prestado o compromisso legal de dizer a verdade sobre o que souber e o que lhe for perguntado em relação aos fatos, sendo, neste ato, cientificado(a) a respeito do teor do art. 346 do CPM e art. 342 do CP'
     } else {
-        comp_resp = 'Sendo dispesado(a) do compromisso legal de dizer a verdade'
+        comp_resp = 'Sendo dispensado(a) do compromisso legal de dizer a verdade'
 
     }
     //fim da seleção do compromisso    
     up = 185
 
-    compromisso = `O(A) qual, sabendo ler e escrever, aos costumes disse: ${costumes_campo}. ${comp_resp}, sem qualquer tipo de constrangimento, coação física ou moral, passou a declarar o que consta gravado em vídeo.`
+    compromisso = `O(A) qual, sabendo ler e escrever, aos costumes disse: ${costumes_resp}. ${comp_resp}, sem qualquer tipo de constrangimento, coação física ou moral, passou a declarar o que consta gravado em vídeo.`
     doc.text(compromisso, 20, up, {
         maxWidth: 180,
         align: 'justify'
     })
     //Texto do compromisso
 
-    up += doc.getLineHeight(costumes_campo) - 2;
-    up += doc.getLineHeight(comp_resp);
+    up += doc.getLineHeight() - 2;
+    up += doc.getLineHeight();
 
     advogado = `Presente, ainda, na audiência em vídeo: ${advogado_resposta}.`
     doc.text(advogado, 20, up, {
@@ -790,21 +727,21 @@ function conf() {
     if (presta_compromisso === 'sim') {
         comp_resp = 'Tendo prestado o compromisso legal de dizer a verdade sobre o que souber e o que lhe for perguntado em relação aos fatos, sendo, neste ato, cientificado(a) a respeito do teor do art. 346 do CPM e art. 342 do CP'
     } else {
-        comp_resp = 'Sendo dispesado(a) do compromisso legal de dizer a verdade'
+        comp_resp = 'Sendo dispensado(a) do compromisso legal de dizer a verdade'
 
     }
     //fim da seleção do compromisso    
     up = 185
 
-    compromisso = `O(A) qual, sabendo ler e escrever, aos costumes disse: ${costumes_campo}. ${comp_resp}, sem qualquer tipo de constrangimento, coação física ou moral, passou a declarar o que consta gravado em vídeo.`
+    compromisso = `O(A) qual, sabendo ler e escrever, aos costumes disse: ${costumes_resp}. ${comp_resp}, sem qualquer tipo de constrangimento, coação física ou moral, passou a declarar o que consta gravado em vídeo.`
     doc.text(compromisso, 20, up, {
         maxWidth: 180,
         align: 'justify'
     })
     //Texto do compromisso
 
-    up += doc.getLineHeight(costumes_campo) - 2;
-    up += doc.getLineHeight(comp_resp);
+    up += doc.getLineHeight() - 2;
+    up += doc.getLineHeight();
 
     advogado = `Presente, ainda, na audiência em vídeo: ${advogado_resposta}.`
     doc.text(advogado, 20, up, {
@@ -945,7 +882,9 @@ function conf() {
 
     }
 
-    doc.addImage(capturedImage, 'PNG', 55, 150, 110, 60);
+    if (capturedImage) {
+        doc.addImage(capturedImage, "PNG", 55, 150, 110, 60);
+    }
 
     if (presenca === "sim") {
         nomeTest = `${nome}, ${cin_dep} (${qualidade})`
@@ -981,7 +920,8 @@ function conf() {
         })
     }
 
-    doc.save(`${nome}.pdf`)
+    // Remove caracteres inválidos em nome de arquivo
+    doc.save(`${nome.replace(/[\\/:*?"<>|]+/g, "_").trim() || "oitiva"}.pdf`)
 }
 
 

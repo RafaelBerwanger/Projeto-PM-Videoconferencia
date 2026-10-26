@@ -70,17 +70,13 @@
         <i class="fa-regular fa-bell" style="color:#666; font-size: 14px;"></i>
         <div class="user-profile" style="display: flex; align-items: center; gap: 6px;">
             <div class="user-avatar"><i class="fa-solid fa-user"></i></div>
-            <span><?= htmlspecialchars($_SESSION['usuario_nome'] ?? 'Policial Militar') ?></span>
+            <span><?= e($_SESSION['usuario_nome'] ?? 'Policial Militar') ?></span>
         </div>
     </div>
 </div>
 
-<!-- LÓGICA GLOBAL DA NAVBAR E PROTEÇÃO DO RELÓGIO -->
+<!-- LÓGICA GLOBAL DA NAVBAR E DO RELÓGIO -->
 <script>
-if (window.intervaloRelogioPMPR) {
-    clearInterval(window.intervaloRelogioPMPR);
-}
-
 function alternarSidebar() {
     const sidebar = document.getElementById('sidebar_menu') || document.querySelector('.sidebar');
     const iconeToggle = document.getElementById('btn-toggle-sidebar');
@@ -89,65 +85,41 @@ function alternarSidebar() {
         sidebar.classList.toggle('hidden');
 
         if (iconeToggle) {
-            if (sidebar.classList.contains('hidden')) {
-                iconeToggle.className = 'fa-solid fa-chevron-right';
-                iconeToggle.title = 'Exibir Menu';
-            } else {
-                iconeToggle.className = 'fa-solid fa-chevron-left';
-                iconeToggle.title = 'Ocultar Menu';
-            }
+            const oculto = sidebar.classList.contains('hidden');
+            iconeToggle.classList.toggle('fa-chevron-left', !oculto);
+            iconeToggle.classList.toggle('fa-chevron-right', oculto);
+            iconeToggle.title = oculto ? 'Exibir Menu' : 'Ocultar Menu';
         }
     }
 }
 
-// Bloqueio contra sobrescrita de scripts externos
-window.bloqueioAtualizacao = false;
-
+// Relógio único do sistema, sempre no fuso de Brasília
 function atualizarRelogio() {
     const elementoRelogio = document.getElementById('relogio-brasilia');
     if (!elementoRelogio) return;
 
-    const agora = new Date();
-    const diasSemana = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
-    const diaSemana = diasSemana[agora.getDay()];
-
-    const dia = String(agora.getDate()).padStart(2, '0');
-    const mes = String(agora.getMonth() + 1).padStart(2, '0');
-    const ano = agora.getFullYear();
-
-    const horas = String(agora.getHours()).padStart(2, '0');
-    const minutos = String(agora.getMinutes()).padStart(2, '0');
-
-    const textoFormatado = `${diaSemana}, ${dia}/${mes}/${ano}, ${horas}:${minutos}`;
-
-    // Atualiza apenas se for diferente para evitar loop
-    if (elementoRelogio.innerText !== textoFormatado) {
-        window.bloqueioAtualizacao = true;
-        elementoRelogio.innerText = textoFormatado;
-        window.bloqueioAtualizacao = false;
-    }
+    const texto = new Date().toLocaleString('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        weekday: 'short',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    elementoRelogio.textContent = texto.replace('.', '');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Auto-collapse do menu em mobile
+    // Auto-collapse do menu em mobile
     const sidebar = document.getElementById('sidebar_menu') || document.querySelector('.sidebar');
     if (window.innerWidth <= 768 && sidebar) {
         sidebar.classList.add('hidden');
     }
 
-    // 2. Proteção via Observer para garantir que nenhum outro script altere a data
-    const elementoRelogio = document.getElementById('relogio-brasilia');
-    if (elementoRelogio) {
-        const observer = new MutationObserver(() => {
-            if (!window.bloqueioAtualizacao) {
-                atualizarRelogio();
-            }
-        });
-        observer.observe(elementoRelogio, { childList: true, characterData: true, subtree: true });
-    }
-
-    // 3. Atualização contínua a cada minuto
     atualizarRelogio();
-    window.intervaloRelogioPMPR = setInterval(atualizarRelogio, 60000);
+    if (!window.intervaloRelogioPMPR) {
+        window.intervaloRelogioPMPR = setInterval(atualizarRelogio, 1000);
+    }
 });
 </script>

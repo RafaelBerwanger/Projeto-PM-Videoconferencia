@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once 'sessao.php';
 
 // Captura e limpa as mensagens de erro ou sucesso armazenadas na sessão
 $mensagem_sucesso = $_SESSION['sucesso_cadastro'] ?? '';
@@ -13,13 +13,7 @@ if (isset($_SESSION['usuario_id'])) {
   header('Location: index.php');
   exit;
 }
-
-// Captura e limpa a mensagem de erro da sessão
-$erro = $_SESSION['erro_login'] ?? '';
-unset($_SESSION['erro_login']);
 ?>
-
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -62,7 +56,7 @@ unset($_SESSION['erro_login']);
       </div>
     <?php endif; ?>
 
-    <!-- ALERTA DE ERRO DE LOGIN (CASO HJA) -->
+    <!-- ALERTA DE ERRO DE LOGIN (CASO HAJA) -->
     <?php if (!empty($mensagem_erro)): ?>
       <div class="message-box error" style="display: flex; align-items: center; gap: 10px; background-color: #fee2e2; border: 1px solid #fca5a5; color: #991b1b; padding: 12px 16px; border-radius: 6px; font-size: 13px; margin-bottom: 20px;">
         <i class="fa-solid fa-circle-exclamation" style="font-size: 18px; color: #ef4444;"></i>
@@ -70,15 +64,9 @@ unset($_SESSION['erro_login']);
       </div>
     <?php endif; ?>
 
-    <!-- Exibição dinâmica de erros vindos do PHP/MySQL -->
-    <?php if (!empty($erro)): ?>
-      <div class="message-box error" style="display: block;">
-        <?= htmlspecialchars($erro) ?>
-      </div>
-    <?php endif; ?>
-
     <!-- Envio seguro via POST para o processador PHP -->
     <form action="processaLogin.php" method="POST">
+      <?= csrf_campo() ?>
       <!-- Campo de Usuário -->
       <div class="input-group">
         <label for="usuario">Usuário</label>
@@ -112,11 +100,7 @@ unset($_SESSION['erro_login']);
 
       <!-- Opções Adicionais -->
       <div class="form-options">
-        <label class="remember-me">
-          <input type="checkbox" name="remember" id="remember">
-          <span>Lembrar-me</span>
-        </label>
-        <a href="#" class="forgot-password">Esqueceu a senha?</a>
+        <span class="forgot-password">Esqueceu a senha? Contate o administrador do sistema.</span>
       </div>
 
       <!-- Botão de Login -->
@@ -130,7 +114,9 @@ unset($_SESSION['erro_login']);
 
     <div class="login-footer">
       <p>Não tem uma conta? <a href="solicitar_acesso.php">Solicite acesso</a></p>
+      <p style="margin-top: 6px; font-size: 12px;"><a href="politica_privacidade.php">Política de Privacidade</a></p>
     </div>
+  </div>
 
     <script>
       // Função para alternar visibilidade da senha (mostrar/ocultar)

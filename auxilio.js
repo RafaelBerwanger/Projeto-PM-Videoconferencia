@@ -28,9 +28,15 @@ document.addEventListener("DOMContentLoaded", () => {
   addItem.addEventListener("click", () => {
     const texto = newItem.value.trim();
     if (texto !== "") {
+      // textContent evita que o texto digitado seja interpretado como HTML
       const div = document.createElement("div");
       div.classList.add("checklist-item");
-      div.innerHTML = `<input type="checkbox"> ${texto}`;
+      const label = document.createElement("label");
+      const check = document.createElement("input");
+      check.type = "checkbox";
+      label.appendChild(check);
+      label.appendChild(document.createTextNode(" " + texto));
+      div.appendChild(label);
       checklist.appendChild(div);
       newItem.value = "";
     }

@@ -1,29 +1,37 @@
 <?php
-session_start();
+require_once 'sessao.php'; // inclui db.php, que carrega o config.php (GROQ_API_KEY)
 header('Content-Type: application/json; charset=utf-8');
 
-// Inclui o arquivo de configuração
-require_once __DIR__ . '/config.php';
-
 // Trava de segurança: apenas usuários logados podem usar
-if (!isset($_SESSION['usuario_id'])) {
-    echo json_encode(['sucesso' => false, 'erro' => 'Sessão expirada. Faça login novamente.']);
+exigirLogin(true);
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !csrf_valido()) {
+    echo json_encode(['sucesso' => false, 'erro' => 'Requisição inválida. Recarregue a página e tente novamente.']);
+    exit;
+}
+
+if (!defined('GROQ_API_KEY') || GROQ_API_KEY === '') {
+    echo json_encode(['sucesso' => false, 'erro' => 'Chave da API de IA não configurada no servidor (config.php).']);
     exit;
 }
 
 // Recebe o texto do POST
 $input = json_decode(file_get_contents('php://input'), true);
-$textoOriginal = trim($input['texto'] ?? '');
+$textoOriginal = trim((string) ($input['texto'] ?? ''));
 
-if (empty($textoOriginal)) {
+if ($textoOriginal === '') {
     echo json_encode(['sucesso' => false, 'erro' => 'Nenhum texto informado para correção.']);
     exit;
 }
 
-// Obtém a chave definida no config.php
+if (mb_strlen($textoOriginal) > 20000) {
+    echo json_encode(['sucesso' => false, 'erro' => 'Texto muito longo para refinamento (máx. 20.000 caracteres). Divida em partes.']);
+    exit;
+}
+
 $apiKey = GROQ_API_KEY;
 
-$promptSystem = "Você é um assistente jurídico especialista na redação de termos de oitiva e depoimentos policiais da Polícia Militar do Paraná (PMPR). 
+$promptSystem = "Você é um assistente jurídico especialista na redação de termos de oitiva e depoimentos policiais da Polícia Militar do Paraná (PMPR).
 Sua tarefa é REFINAR e CORRIGIR o texto a seguir.
 REGRAS OBRIGATÓRIAS:
 1. Corrija a pontuação (vírgulas, pontos), erros ortográficos, concordância verbal/nominal e erros de transcrição de voz.
@@ -32,59 +40,74 @@ REGRAS OBRIGATÓRIAS:
 4. Retorne APENAS e TÃO SOMENTE o texto corrigido, sem saudações, observações, aspas ou introduções.";
 
 // -------------------------------------------------------------------
-// PASSO 1: CONSULTA EM TEMPO REAL OS MODELOS ATIVOS NA SUA CONTA GROQ
+// PASSO 1: DESCOBRE OS MODELOS DE CHAT ATIVOS NA CONTA GROQ
+// A Groq retira modelos com frequência, por isso a lista é consultada na API
+// (com cache de 1h na sessão) em vez de fixada no código.
 // -------------------------------------------------------------------
-$chModels = curl_init('https://api.groq.com/openai/v1/models');
-curl_setopt($chModels, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($chModels, CURLOPT_HTTPHEADER, [
-    'Authorization: Bearer ' . $apiKey
-]);
-curl_setopt($chModels, CURLOPT_SSL_VERIFYPEER, false);
-curl_setopt($chModels, CURLOPT_SSL_VERIFYHOST, false);
+function listarModelosGroq(string $apiKey): array
+{
+    $cache = $_SESSION['groq_modelos'] ?? null;
+    if ($cache && $cache['expira'] > time()) {
+        return $cache['lista'];
+    }
 
-$resModels = curl_exec($chModels);
-$httpCodeModels = curl_getinfo($chModels, CURLINFO_HTTP_CODE);
-curl_close($chModels);
+    $ch = curl_init('https://api.groq.com/openai/v1/models');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER     => ['Authorization: Bearer ' . $apiKey],
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_TIMEOUT        => 15,
+    ]);
+    $res  = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
-$modelosValidos = [];
-
-if ($httpCodeModels === 200) {
-    $dataModels = json_decode($resModels, true);
-    if (!empty($dataModels['data'])) {
-        foreach ($dataModels['data'] as $m) {
+    $ids = [];
+    if ($code === 200) {
+        foreach (json_decode($res, true)['data'] ?? [] as $m) {
             $id = $m['id'] ?? '';
-            $idLower = strtolower($id);
-
-            // Filtra exclusivamente modelos válidos para chat/texto
-            // Ignora modelos de moderação/segurança, áudio e de imagem
-            if (
-                !str_contains($idLower, 'guard') &&
-                !str_contains($idLower, 'whisper') &&
-                !str_contains($idLower, 'vision') &&
-                !str_contains($idLower, 'safeguard')
-            ) {
-                $modelosValidos[] = $id;
+            if ($id === '' || (isset($m['active']) && !$m['active'])) {
+                continue;
             }
+            // Ignora modelos que não servem para texto: áudio, voz, moderação, visão, embeddings
+            if (preg_match('/whisper|guard|orpheus|tts|playai|vision|embed|allam/i', $id)) {
+                continue;
+            }
+            $ids[] = $id;
         }
     }
+
+    // Ordem de preferência (modelos maiores e melhores em português primeiro)
+    $preferencia = ['gpt-oss-120b', 'llama-3.3-70b', 'llama-4', 'qwen', 'kimi', 'gpt-oss-20b', 'llama'];
+    $peso = function (string $id) use ($preferencia): int {
+        foreach ($preferencia as $i => $trecho) {
+            if (stripos($id, $trecho) !== false) {
+                return $i;
+            }
+        }
+        return count($preferencia);
+    };
+    usort($ids, fn($a, $b) => $peso($a) <=> $peso($b));
+
+    if ($ids) {
+        $_SESSION['groq_modelos'] = ['lista' => $ids, 'expira' => time() + 3600];
+    }
+    return $ids;
 }
 
-// Se por algum motivo a busca automática falhar, utiliza os nomes atuais
-if (empty($modelosValidos)) {
-    $modelosValidos = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
+// Tenta no máximo 3 modelos para não demorar demais em caso de falha geral
+$modelos = array_slice(listarModelosGroq($apiKey), 0, 3);
+if (!$modelos) {
+    $modelos = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b'];
 }
 
-// -------------------------------------------------------------------
-// PASSO 2: TESTA OS MODELOS ENCONTRADOS ATÉ OBTER SUCESSO
-// -------------------------------------------------------------------
-$sucesso = false;
 $textoRefinado = '';
-$ultimoErro = '';
+$ultimoErro    = '';
 
-foreach ($modelosValidos as $modelo) {
+foreach ($modelos as $modelo) {
     $data = [
-        'model' => $modelo,
-        'messages' => [
+        'model'       => $modelo,
+        'messages'    => [
             ['role' => 'system', 'content' => $promptSystem],
             ['role' => 'user', 'content' => $textoOriginal]
         ],
@@ -92,40 +115,54 @@ foreach ($modelosValidos as $modelo) {
     ];
 
     $ch = curl_init('https://api.groq.com/openai/v1/chat/completions');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: application/json',
-        'Authorization: Bearer ' . $apiKey
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => json_encode($data),
+        CURLOPT_HTTPHEADER     => [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $apiKey
+        ],
+        CURLOPT_CONNECTTIMEOUT => 10,
+        CURLOPT_TIMEOUT        => 60,
+        // Verificação SSL ativa: o depoimento contém dados pessoais
     ]);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlErro = curl_error($ch);
     curl_close($ch);
 
     if ($httpCode === 200) {
         $responseData = json_decode($response, true);
         if (isset($responseData['choices'][0]['message']['content'])) {
-            $textoRefinado = trim($responseData['choices'][0]['message']['content']);
-            $sucesso = true;
-            break; // Requisição bem-sucedida
+            // Modelos de raciocínio (ex.: Qwen) podem devolver o "pensamento" entre <think>
+            $conteudo = preg_replace('/<think>.*?<\/think>/s', '', $responseData['choices'][0]['message']['content']);
+            $textoRefinado = trim($conteudo);
+            if ($textoRefinado !== '') {
+                break; // Requisição bem-sucedida
+            }
         }
-    } else {
-        $ultimoErro = "Modelo {$modelo} (HTTP {$httpCode}): " . $response;
+    }
+    // Modelo retirado/indisponível: limpa o cache para a próxima chamada buscar a lista nova
+    if ($httpCode === 404) {
+        unset($_SESSION['groq_modelos']);
+    }
+    $ultimoErro = "Modelo {$modelo}: HTTP {$httpCode} {$curlErro} " . substr((string) $response, 0, 500);
+
+    // Chave inválida não melhora trocando de modelo
+    if ($httpCode === 401) {
+        break;
     }
 }
 
-// -------------------------------------------------------------------
-// RETORNO DA RESPOSTA
-// -------------------------------------------------------------------
-if ($sucesso) {
+if ($textoRefinado !== '') {
     echo json_encode(['sucesso' => true, 'texto' => $textoRefinado]);
 } else {
+    // Detalhes técnicos vão para o log do servidor, não para o usuário
+    error_log('Falha no refinamento via Groq: ' . $ultimoErro);
     echo json_encode([
         'sucesso' => false,
-        'erro' => 'Falha ao comunicar com a Groq. Detalhes: ' . $ultimoErro
+        'erro'    => 'Não foi possível refinar o texto agora. Tente novamente em instantes.'
     ]);
 }

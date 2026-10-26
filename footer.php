@@ -12,6 +12,10 @@
             <i class="fa-brands fa-whatsapp icono-wpp"></i>
             Feedback / Suporte
         </a>
+
+        <a href="politica_privacidade.php" style="color: #64748b; font-size: 12px;">
+            <i class="fa-solid fa-file-shield"></i> Política de Privacidade (LGPD)
+        </a>
     </div>
 </footer>
 

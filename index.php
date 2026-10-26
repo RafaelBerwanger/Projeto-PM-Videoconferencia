@@ -1,3 +1,14 @@
+<?php
+require_once 'sessao.php';
+
+// Se o usuário não estiver logado, redireciona para a tela de login
+$user = exigirLogin();
+
+$nome_usuario   = $user['nome'] ?: 'Policial Militar';
+$posto_usuario  = $user['posto_graduacao'] ?? '';
+$opm_usuario    = $user['unidade'] ?: 'PMPR';
+$perfil_usuario = $user['perfil'] ?? 'operador';
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -7,20 +18,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel do Encarregado - Intranet PMPR</title>
   <link rel="icon" href="img/favicon.ico" type="image/x-icon">
-
-  <?php
-  session_start();
-  // Se o usuário não estiver logado, redireciona para a tela de login
-  if (!isset($_SESSION['usuario_id'])) {
-    header('Location: login.php');
-    exit;
-  }
-
-  $nome_usuario  = $_SESSION['usuario_nome'] ?? 'Policial Militar';
-  $posto_usuario = $_SESSION['usuario_posto_graduacao'] ?? '';
-  $opm_usuario   = $_SESSION['usuario_unidade'] ?? 'PMPR';
-  $perfil_usuario = $_SESSION['usuario_perfil'] ?? 'usuario';
-  ?>
 
   <!-- Font Awesome para ícones -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -255,30 +252,6 @@
         <?php require_once 'footer.php'; ?>
 
   </div>
-
-  <script>
-    function atualizarRelogioBrasilia() {
-      // Obtém a data/hora ajustada para o fuso horário de Brasília (America/Sao_Paulo)
-      const opcoes = {
-        timeZone: 'America/Sao_Paulo',
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      };
-
-      const agora = new Date().toLocaleString('pt-BR', opcoes);
-      const [data, hora] = agora.split(', ');
-
-      document.getElementById('relogio-brasilia').textContent = `${data} - ${hora}`;
-    }
-
-    // Atualiza imediatamente e depois a cada 1 segundo (1000ms)
-    atualizarRelogioBrasilia();
-    setInterval(atualizarRelogioBrasilia, 1000);
-  </script>
 
 </body>
 

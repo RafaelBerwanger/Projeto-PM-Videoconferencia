@@ -1,38 +1,59 @@
 <?php
-session_start();
-require_once 'db.php';
+require_once 'sessao.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-if (!isset($_SESSION['usuario_id'])) {
-    echo json_encode(['sucesso' => false, 'erro' => 'Sessão expirada. Faça login novamente.']);
+$user       = exigirLogin(true);
+exigirModuloProcedimentos(true);
+$id_usuario = (int) $user['id'];
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !csrf_valido()) {
+    echo json_encode(['sucesso' => false, 'erro' => 'Requisição inválida. Recarregue a página e tente novamente.']);
     exit;
 }
 
-$id_usuario = $_SESSION['usuario_id'];
+const TIPOS_PROCEDIMENTO = ['FATD', 'SINDICÂNCIA', 'IPM', 'CD', 'CJ', 'IT', 'APFD', 'ADL'];
 
-// Captura dos dados enviados por formulário ou JSON
+// Captura dos dados enviados pelo formulário
 $tipo             = trim($_POST['tipo'] ?? '');
 $numero           = trim($_POST['numero'] ?? '');
 $portaria         = trim($_POST['portaria'] ?? '');
 $data_instauracao = trim($_POST['data_instauracao'] ?? '');
-$prazo_dias       = intval($_POST['prazo_dias'] ?? 10);
+$prazo_dias       = (int) ($_POST['prazo_dias'] ?? 10);
 $sintese          = trim($_POST['sintese'] ?? '');
 
-if (empty($tipo) || empty($numero) || empty($data_instauracao) || $prazo_dias <= 0) {
+if ($tipo === '' || $numero === '' || $data_instauracao === '' || $prazo_dias <= 0) {
     echo json_encode(['sucesso' => false, 'erro' => 'Por favor, preencha todos os campos obrigatórios.']);
+    exit;
+}
+
+if (!in_array($tipo, TIPOS_PROCEDIMENTO, true)) {
+    echo json_encode(['sucesso' => false, 'erro' => 'Tipo de procedimento inválido.']);
+    exit;
+}
+
+// Aceita apenas datas reais no formato AAAA-MM-DD
+$dateInst = DateTime::createFromFormat('!Y-m-d', $data_instauracao);
+if (!$dateInst || $dateInst->format('Y-m-d') !== $data_instauracao) {
+    echo json_encode(['sucesso' => false, 'erro' => 'Data de instauração inválida.']);
+    exit;
+}
+
+if ($prazo_dias > 3650) {
+    echo json_encode(['sucesso' => false, 'erro' => 'Prazo em dias inválido.']);
     exit;
 }
 
 try {
     // Calcula a data de vencimento (Soma dos dias à data de instauração)
-    $dateInst = new DateTime($data_instauracao);
-    $dateInst->modify("+{$prazo_dias} days");
-    $data_vencimento = $dateInst->format('Y-m-d');
+    $data_vencimento = (clone $dateInst)->modify("+{$prazo_dias} days")->format('Y-m-d');
 
-    $sql = "INSERT INTO procedimentos 
-            (id_usuario, tipo, numero, portaria, data_instauracao, prazo_dias, data_vencimento, status, sintese) 
-            VALUES 
+    // Procedimento e primeiro ato são gravados juntos (ou nenhum dos dois)
+    $pdo->beginTransaction();
+
+    $sql = "INSERT INTO procedimentos
+            (id_usuario, tipo, numero, portaria, data_instauracao, prazo_dias, data_vencimento, status, sintese)
+            VALUES
             (:id_usuario, :tipo, :numero, :portaria, :data_instauracao, :prazo_dias, :data_vencimento, 'Em Andamento', :sintese)";
 
     $stmt = $pdo->prepare($sql);
@@ -47,10 +68,10 @@ try {
         ':sintese'          => $sintese
     ]);
 
-    $id_procedimento = $pdo->lastInsertId();
+    $id_procedimento = (int) $pdo->lastInsertId();
 
     // Registra o primeiro ato na timeline: Instauração do Feito
-    $sqlAto = "INSERT INTO procedimento_atos (id_procedimento, id_usuario, titulo, descricao, tipo_ato, data_ato) 
+    $sqlAto = "INSERT INTO procedimento_atos (id_procedimento, id_usuario, titulo, descricao, tipo_ato, data_ato)
                VALUES (:id_proc, :id_user, :titulo, :descr, 'Instauração', :data_ato)";
     $stmtAto = $pdo->prepare($sqlAto);
     $stmtAto->execute([
@@ -61,9 +82,13 @@ try {
         ':data_ato' => $data_instauracao
     ]);
 
-    echo json_encode(['sucesso' => true, 'id_procedimento' => $id_procedimento]);
+    $pdo->commit();
 
+    echo json_encode(['sucesso' => true, 'id_procedimento' => $id_procedimento]);
 } catch (PDOException $e) {
-    echo json_encode(['sucesso' => false, 'erro' => 'Erro ao gravar no banco de dados: ' . $e->getMessage()]);
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    error_log('Erro ao salvar procedimento: ' . $e->getMessage());
+    echo json_encode(['sucesso' => false, 'erro' => 'Erro ao gravar no banco de dados. Tente novamente.']);
 }
-?>

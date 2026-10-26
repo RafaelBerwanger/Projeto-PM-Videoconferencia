@@ -1,30 +1,21 @@
 <?php
-session_start();
-require_once 'db.php';
+require_once 'sessao.php';
 
-if (!isset($_SESSION['usuario_id'])) {
-    header('Location: login.php');
-    exit;
-}
+$user       = exigirLogin();
+exigirModuloProcedimentos();
+$id_usuario = (int) $user['id'];
 
-$id_usuario = $_SESSION['usuario_id'];
-
-// 1. PUXA DADOS DO USUÁRIO
-$stmt = $pdo->prepare('SELECT * FROM usuarios WHERE id = :id LIMIT 1');
-$stmt->execute(['id' => $id_usuario]);
-$user = $stmt->fetch();
-
-// 2. CONSULTA PROCEDIMENTOS CADASTRADOS PELO ENCARREGADO
-$sql = "SELECT p.*, u.nome AS encarregado_nome 
-        FROM procedimentos p 
-        LEFT JOIN usuarios u ON p.id_usuario = u.id 
-        WHERE p.id_usuario = :id_user 
+// 1. CONSULTA PROCEDIMENTOS CADASTRADOS PELO ENCARREGADO
+$sql = "SELECT p.*, u.nome AS encarregado_nome
+        FROM procedimentos p
+        LEFT JOIN usuarios u ON p.id_usuario = u.id
+        WHERE p.id_usuario = :id_user
         ORDER BY p.id DESC";
 $stmtProc = $pdo->prepare($sql);
 $stmtProc->execute(['id_user' => $id_usuario]);
 $procedimentos = $stmtProc->fetchAll();
 
-// 3. CÁLCULO DAS ESTATÍSTICAS DOS CARDS
+// 2. CÁLCULO DAS ESTATÍSTICAS DOS CARDS
 $total_feitos = count($procedimentos);
 $total_fatd = 0;
 $total_sindicancia = 0;
@@ -33,12 +24,34 @@ $total_conselhos = 0;
 $total_it = 0;
 
 foreach ($procedimentos as $p) {
-    $tipo = strtoupper($p['tipo']);
+    $tipo = mb_strtoupper($p['tipo']);
     if ($tipo === 'FATD') $total_fatd++;
     elseif ($tipo === 'SINDICÂNCIA') $total_sindicancia++;
     elseif ($tipo === 'IPM') $total_ipm++;
     elseif ($tipo === 'CD' || $tipo === 'CJ') $total_conselhos++;
     elseif ($tipo === 'IT') $total_it++;
+}
+
+// Situação do prazo (compara somente datas: o feito vence no FIM do dia de vencimento)
+function situacaoPrazo(array $p): array
+{
+    if ($p['status'] === 'Concluído') {
+        return ['badge-concluido', 'Concluído'];
+    }
+    $hoje       = new DateTime('today');
+    $vencimento = new DateTime($p['data_vencimento']);
+    $dias       = (int) $hoje->diff($vencimento)->format('%r%a');
+
+    if ($dias < 0) {
+        return ['badge-vencido', 'Vencido'];
+    }
+    if ($dias === 0) {
+        return ['badge-prazo', 'Vence hoje'];
+    }
+    if ($dias <= 5) {
+        return ['badge-prazo', 'Prazo Próximo (' . $dias . ($dias === 1 ? ' dia)' : ' dias)')];
+    }
+    return ['badge-andamento', $p['status']];
 }
 ?>
 
@@ -171,43 +184,23 @@ foreach ($procedimentos as $p) {
                             </tr>
                         <?php else: ?>
                             <?php foreach ($procedimentos as $p): ?>
-                                <?php
-                                    // Formatação de datas para exibição brasileira
-                                    $dataInst = date('d/m/Y', strtotime($p['data_instauracao']));
-                                    $dataVenc = date('d/m/Y', strtotime($p['data_vencimento']));
-
-                                    // Lógica visual do status do prazo
-                                    $hoje = new DateTime();
-                                    $vencimento = new DateTime($p['data_vencimento']);
-                                    $diferenca = $hoje->diff($vencimento);
-
-                                    $badgeClasse = 'badge-andamento';
-                                    if ($hoje > $vencimento && $p['status'] !== 'Concluído') {
-                                        $badgeClasse = 'badge-vencido';
-                                        $textoStatus = 'Vencido';
-                                    } elseif ($diferenca->days <= 5 && $hoje <= $vencimento && $p['status'] !== 'Concluído') {
-                                        $badgeClasse = 'badge-prazo';
-                                        $textoStatus = 'Prazo Próximo (' . $diferenca->days . ' dias)';
-                                    } else {
-                                        $textoStatus = htmlspecialchars($p['status']);
-                                    }
-                                ?>
-                                <tr>
-                                    <td><strong><?= htmlspecialchars($p['tipo']) ?></strong></td>
+                                <?php [$badgeClasse, $textoStatus] = situacaoPrazo($p); ?>
+                                <tr data-tipo="<?= e(mb_strtoupper($p['tipo'])) ?>">
+                                    <td><strong><?= e($p['tipo']) ?></strong></td>
                                     <td>
-                                        <b><?= htmlspecialchars($p['numero']) ?></b>
+                                        <b><?= e($p['numero']) ?></b>
                                         <?php if (!empty($p['portaria'])): ?>
-                                            <br><small style="color: #64748b;"><?= htmlspecialchars($p['portaria']) ?></small>
+                                            <br><small style="color: #64748b;"><?= e($p['portaria']) ?></small>
                                         <?php endif; ?>
                                     </td>
-                                    <td><?= htmlspecialchars($p['encarregado_nome'] ?? $user['nome']) ?></td>
-                                    <td><?= $dataInst ?></td>
-                                    <td><b><?= $dataVenc ?></b></td>
-                                    <td><span class="badge-status <?= $badgeClasse ?>"><?= $textoStatus ?></span></td>
+                                    <td><?= e($p['encarregado_nome'] ?? $user['nome']) ?></td>
+                                    <td><?= date('d/m/Y', strtotime($p['data_instauracao'])) ?></td>
+                                    <td><b><?= date('d/m/Y', strtotime($p['data_vencimento'])) ?></b></td>
+                                    <td><span class="badge-status <?= $badgeClasse ?>"><?= e($textoStatus) ?></span></td>
                                     <td style="text-align: center;">
-                                        <button class="btn-acao" style="background:#2563eb; color:#fff;" title="Gerenciar Procedimento" onclick="location.href='ver_procedimento.php?id=<?= $p['id'] ?>'">
+                                        <a class="btn-acao" style="background:#2563eb; color:#fff; text-decoration:none;" title="Gerenciar Procedimento" href="ver_procedimento.php?id=<?= (int) $p['id'] ?>">
                                             <i class="fa-solid fa-folder-open"></i> Gerenciar
-                                        </button>
+                                        </a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -285,7 +278,10 @@ foreach ($procedimentos as $p) {
         function abrirModalNovo() {
             document.getElementById('modalProcedimento').style.display = 'flex';
             if (!document.getElementById('proc_data_inst').value) {
-                document.getElementById('proc_data_inst').value = new Date().toISOString().split('T')[0];
+                // Data local (toISOString usaria UTC e mostraria o dia seguinte após as 21h)
+                const hoje = new Date();
+                hoje.setMinutes(hoje.getMinutes() - hoje.getTimezoneOffset());
+                document.getElementById('proc_data_inst').value = hoje.toISOString().split('T')[0];
             }
             calcularPrazoSugerido();
         }
@@ -308,13 +304,14 @@ foreach ($procedimentos as $p) {
 
         function filtrarTabela() {
             const busca = document.getElementById('buscaProcedimento').value.toLowerCase();
-            const tipo = document.getElementById('filtroTipo').value.toLowerCase();
-            const linhas = document.querySelectorAll('#tabelaProcedimentos tbody tr');
+            const tipo = document.getElementById('filtroTipo').value;
+            const linhas = document.querySelectorAll('#tabelaProcedimentos tbody tr[data-tipo]');
 
             linhas.forEach(linha => {
                 const textoLinha = linha.innerText.toLowerCase();
                 const correspondeBusca = textoLinha.includes(busca);
-                const correspondeTipo = (tipo === '' || textoLinha.includes(tipo));
+                // Compara pelo tipo exato da linha (buscar "IT" no texto casaria com qualquer palavra)
+                const correspondeTipo = (tipo === '' || linha.dataset.tipo === tipo);
 
                 if (correspondeBusca && correspondeTipo) {
                     linha.style.display = '';
@@ -337,6 +334,7 @@ foreach ($procedimentos as $p) {
             try {
                 const resposta = await fetch('salvar_procedimento.php', {
                     method: 'POST',
+                    headers: { 'X-CSRF-Token': <?= json_encode(csrf_token()) ?> },
                     body: formData
                 });
 
@@ -361,4 +359,3 @@ foreach ($procedimentos as $p) {
 
 </body>
 
-</html>

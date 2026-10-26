@@ -1,83 +1,83 @@
 <?php
-session_start();
-require_once 'db.php';
+require_once 'sessao.php';
+require_once 'listas.php';
 
-// Leitura das mensagens de erro/sucesso armazenadas na sessão
+// Usuário já logado não precisa solicitar acesso
+if (isset($_SESSION['usuario_id'])) {
+  header('Location: index.php');
+  exit;
+}
+
 $mensagem = '';
 $tipo_msg = '';
 
-if (!empty($_SESSION['erro_cadastro'])) {
-  $mensagem = $_SESSION['erro_cadastro'];
-  $tipo_msg = 'erro'; // Ajuste conforme a classe CSS de erro do seu estilo
-  unset($_SESSION['erro_cadastro']);
-} elseif (!empty($_SESSION['sucesso_cadastro'])) {
-  $mensagem = $_SESSION['sucesso_cadastro'];
-  $tipo_msg = 'sucesso';
-  unset($_SESSION['sucesso_cadastro']);
-}
+// Valores digitados são mantidos no formulário em caso de erro
+$campos = ['nome', 'rg', 'cpf', 'email', 'posto_graduacao', 'unidade', 'telefone', 'usuario'];
+$old = array_fill_keys($campos, '');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $nome            = trim($_POST['nome'] ?? '');
-  $rg              = trim($_POST['rg'] ?? '');
-  $cpf             = trim($_POST['cpf'] ?? '');
-  $email           = trim($_POST['email'] ?? '');
-  $posto_graduacao = trim($_POST['posto_graduacao'] ?? '');
-  $unidade         = trim($_POST['unidade'] ?? '');
-  $telefone        = trim($_POST['telefone'] ?? '');
-  $usuario         = trim($_POST['usuario'] ?? '');
-  $senha           = trim($_POST['senha'] ?? '');
+  foreach ($campos as $c) {
+    $old[$c] = trim($_POST[$c] ?? '');
+  }
+  $senha = $_POST['senha'] ?? '';
 
-  // Validação de campos obrigatórios
-  if (!empty($nome) && !empty($rg) && !empty($cpf) && !empty($email) && !empty($posto_graduacao) && !empty($unidade) && !empty($telefone) && !empty($usuario) && !empty($senha)) {
+  $erro = null;
+  if (!csrf_valido()) {
+    $erro = 'Sessão expirada. Envie o formulário novamente.';
+  } else {
+    $erro = validarDadosCadastrais($old);
+  }
+  if (!$erro && !preg_match('/^[A-Za-z0-9._-]{3,50}$/', $old['usuario'])) {
+    $erro = 'O usuário deve ter de 3 a 50 caracteres (letras, números, ponto, hífen ou sublinhado).';
+  }
+  if (!$erro && strlen($senha) < 6) {
+    $erro = 'A senha deve ter no mínimo 6 caracteres.';
+  }
+  // Consentimento LGPD: sem aceite não há cadastro
+  if (!$erro && ($_POST['aceite_termo'] ?? '') !== 'sim') {
+    $erro = 'Para solicitar acesso é necessário aceitar a Política de Privacidade.';
+  }
 
+  if (!$erro) {
     try {
       // 1. Verificação se o Usuário, CPF ou E-mail já existem no banco
       $stmtCheck = $pdo->prepare('SELECT id FROM usuarios WHERE usuario = :usuario OR cpf = :cpf OR email = :email LIMIT 1');
-      $stmtCheck->execute(['usuario' => $usuario, 'cpf' => $cpf, 'email' => $email]);
+      $stmtCheck->execute(['usuario' => $old['usuario'], 'cpf' => $old['cpf'], 'email' => $old['email']]);
 
       if ($stmtCheck->fetch()) {
-        $_SESSION['erro_cadastro'] = 'Usuário, CPF ou E-mail já cadastrados no sistema.';
-        header('Location: solicitar_acesso.php');
+        $erro = 'Usuário, CPF ou E-mail já cadastrados no sistema.';
+      } else {
+        // 2. Inserção do usuário com perfil "operador" e status "pendente",
+        //    registrando a versão e a data do aceite da Política (prova do consentimento)
+        $stmt = $pdo->prepare("
+          INSERT INTO usuarios (nome, rg, cpf, email, posto_graduacao, unidade, telefone, usuario, senha, perfil, status, termo_versao, termo_aceito_em)
+          VALUES (:nome, :rg, :cpf, :email, :posto, :unidade, :telefone, :usuario, :senha, 'operador', 'pendente', :termo, NOW())
+        ");
+        $stmt->execute([
+          'nome'     => $old['nome'],
+          'rg'       => $old['rg'],
+          'cpf'      => $old['cpf'],
+          'email'    => $old['email'],
+          'posto'    => $old['posto_graduacao'],
+          'unidade'  => $old['unidade'],
+          'telefone' => $old['telefone'],
+          'usuario'  => $old['usuario'],
+          'senha'    => password_hash($senha, PASSWORD_DEFAULT),
+          'termo'    => TERMO_VERSAO_ATUAL,
+        ]);
+
+        $_SESSION['sucesso_cadastro'] = 'Aguarde a aprovação do Administrador.';
+        header('Location: login.php');
         exit;
       }
-
-      // 2. Criptografia da senha
-      $hashSenha = password_hash($senha, PASSWORD_BCRYPT);
-
-      // 3. Inserção do usuário com perfil "usuario" e status "pendente"
-      $stmt = $pdo->prepare('
-              INSERT INTO usuarios (nome, rg, cpf, email, posto_graduacao, unidade, telefone, usuario, senha, perfil, status) 
-              VALUES (:nome, :rg, :cpf, :email, :posto, :unidade, :telefone, :usuario, :senha, "usuario", "pendente")
-          ');
-
-      $stmt->execute([
-        'nome'     => $nome,
-        'rg'       => $rg,
-        'cpf'      => $cpf,
-        'email'    => $email,
-        'posto'    => $posto_graduacao,
-        'unidade'  => $unidade,
-        'telefone' => $telefone,
-        'usuario'  => $usuario,
-        'senha'    => $hashSenha
-      ]);
-
-      $_SESSION['sucesso_cadastro'] = 'Solicitação realizada com sucesso! Aguarde a aprovação do Administrador.';
-      header('Location: login.php');
-      exit;
-
     } catch (PDOException $e) {
-      // Em caso de erro na estrutura da tabela MySQL
-      $_SESSION['erro_cadastro'] = 'Erro ao processar solicitação no banco de dados. Tente novamente.';
-      header('Location: solicitar_acesso.php');
-      exit;
+      error_log('Erro no cadastro: ' . $e->getMessage());
+      $erro = 'Erro ao processar solicitação no banco de dados. Tente novamente.';
     }
-
-  } else {
-    $_SESSION['erro_cadastro'] = 'Preencha todos os campos obrigatórios.';
-    header('Location: solicitar_acesso.php');
-    exit;
   }
+
+  $mensagem = $erro;
+  $tipo_msg = 'error';
 }
 ?>
 <!DOCTYPE html>
@@ -87,6 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Solicitar Acesso - Oitivas PMPR</title>
+  <link rel="icon" href="img/favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="style_login.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -102,12 +103,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <!-- CAIXA DE MENSAGENS -->
     <?php if (!empty($mensagem)): ?>
-      <div class="message-box <?= htmlspecialchars($tipo_msg) ?>" style="display: block; padding: 10px; margin-bottom: 15px; border-radius: 6px; font-size: 13px; text-align: center;">
-        <?= htmlspecialchars($mensagem) ?>
+      <div class="message-box <?= e($tipo_msg) ?>" style="display: block; padding: 10px; margin-bottom: 15px; border-radius: 6px; font-size: 13px; text-align: center;">
+        <?= e($mensagem) ?>
       </div>
     <?php endif; ?>
 
     <form method="POST" action="solicitar_acesso.php">
+      <?= csrf_campo() ?>
 
       <!-- Posto / Graduação -->
       <div class="input-group">
@@ -115,38 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="input-wrapper">
           <i class="fa-solid fa-ranking-star input-icon"></i>
           <select id="posto_graduacao" name="posto_graduacao" class="custom-select" required>
-            <option value="" disabled selected>Selecione...</option>
-            <optgroup label="Oficiais Superiores">
-              <option value="Cel.">Coronel (Cel.)</option>
-              <option value="Ten.-Cel.">Tenente-Coronel (Ten.-Cel.)</option>
-              <option value="Maj.">Major (Maj.)</option>
-            </optgroup>
-
-            <optgroup label="Oficiais Intermediários e Subalternos">
-              <option value="Cap.">Capitão (Cap.)</option>
-              <option value="1º Ten.">1º Tenente (1º Ten.)</option>
-              <option value="2º Ten.">2º Tenente (2º Ten.)</option>
-              <option value="Asp. a Of.">Aspirante-a-Oficial (Asp. a Of.)</option>
-            </optgroup>
-
-            <optgroup label="Praças Especiais">
-              <option value="Cadete 3º Ano">Cadete 3º Ano</option>
-              <option value="Cadete 2º Ano">Cadete 2º Ano</option>
-              <option value="Cadete 1º Ano">Cadete 1º Ano</option>
-            </optgroup>
-
-            <optgroup label="Praças Graduados">
-              <option value="Subten.">Subtenente (Subten.)</option>
-              <option value="1º Sgt.">1º Sargento (1º Sgt.)</option>
-              <option value="2º Sgt.">2º Sargento (2º Sgt.)</option>
-              <option value="3º Sgt.">3º Sargento (3º Sgt.)</option>
-              <option value="Cabo">Cabo (Cb.)</option>
-            </optgroup>
-
-            <optgroup label="Praças">
-              <option value="Soldado 1ª Classe">Soldado 1ª Classe (Sd. 1ª Cl.)</option>
-              <option value="Soldado 2ª Classe">Soldado 2ª Classe (Sd. 2ª Cl. - Aluno)</option>
-            </optgroup>
+            <?= renderOpcoes(LISTA_POSTOS, $old['posto_graduacao']) ?>
           </select>
         </div>
       </div>
@@ -156,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <label for="nome">Nome Completo</label>
         <div class="input-wrapper">
           <i class="fa-solid fa-id-card input-icon"></i>
-          <input type="text" id="nome" name="nome" placeholder="Nome completo sem abreviações" required>
+          <input type="text" id="nome" name="nome" placeholder="Nome completo sem abreviações" value="<?= e($old['nome']) ?>" required>
         </div>
       </div>
 
@@ -165,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <label for="email">E-mail Corporativo ou Pessoal</label>
         <div class="input-wrapper">
           <i class="fa-solid fa-envelope input-icon"></i>
-          <input type="email" id="email" name="email" placeholder="seu.email@pm.pr.gov.br" required>
+          <input type="email" id="email" name="email" placeholder="seu.email@pm.pr.gov.br" value="<?= e($old['email']) ?>" required>
         </div>
       </div>
 
@@ -175,14 +146,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <label for="rg">RG</label>
           <div class="input-wrapper">
             <i class="fa-solid fa-address-card input-icon"></i>
-            <input type="text" id="rg" name="rg" placeholder="Ex: 12.345.678-9" required>
+            <input type="text" id="rg" name="rg" placeholder="Ex: 12.345.678-9" value="<?= e($old['rg']) ?>" required>
           </div>
         </div>
         <div class="input-group" style="flex: 1;">
           <label for="cpf">CPF</label>
           <div class="input-wrapper">
             <i class="fa-solid fa-fingerprint input-icon"></i>
-            <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)" required>
+            <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)" value="<?= e($old['cpf']) ?>" required>
           </div>
         </div>
       </div>
@@ -193,85 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="input-wrapper">
           <i class="fa-solid fa-building-shield input-icon"></i>
           <select id="unidade" name="unidade" class="custom-select" required>
-            <option value="" disabled selected>Selecione a Unidade...</option>
-
-            <optgroup label="Comandos Regionais (CRPM)">
-              <option value="1º CRPM - Curitiba">1º CRPM - Curitiba</option>
-              <option value="2º CRPM - Londrina">2º CRPM - Londrina</option>
-              <option value="3º CRPM - Maringá">3º CRPM - Maringá</option>
-              <option value="4º CRPM - Ponta Grossa">4º CRPM - Ponta Grossa</option>
-              <option value="5º CRPM - Cascavel">5º CRPM - Cascavel</option>
-              <option value="6º CRPM - São José dos Pinhais">6º CRPM - São José dos Pinhais</option>
-              <option value="7º CRPM - Pato Branco">7º CRPM - Pato Branco</option>
-            </optgroup>
-
-            <optgroup label="Comandos Especializados e Apoio">
-              <option value="CME - Curitiba">CME - Curitiba</option>
-              <option value="CPE - Curitiba">CPE - Curitiba</option>
-              <option value="COMAV - Curitiba">COMAV - Curitiba</option>
-              <option value="CIROCAM - Curitiba">CIROCAM - Curitiba</option>
-              <option value="COPOM - Curitiba">COPOM - Curitiba</option>
-            </optgroup>
-
-            <optgroup label="Batalhões de Polícia Militar (BPM)">
-              <option value="1º BPM - Ponta Grossa">1º BPM - Ponta Grossa</option>
-              <option value="2º BPM - Jacarezinho">2º BPM - Jacarezinho</option>
-              <option value="3º BPM - Pato Branco">3º BPM - Pato Branco</option>
-              <option value="4º BPM - Maringá">4º BPM - Maringá</option>
-              <option value="5º BPM - Londrina">5º BPM - Londrina</option>
-              <option value="6º BPM - Cascavel">6º BPM - Cascavel</option>
-              <option value="7º BPM - Cruzeiro do Oeste">7º BPM - Cruzeiro do Oeste</option>
-              <option value="8º BPM - Paranavaí">8º BPM - Paranavaí</option>
-              <option value="9º BPM - Paranaguá">9º BPM - Paranaguá</option>
-              <option value="10º BPM - Apucarana">10º BPM - Apucarana</option>
-              <option value="11º BPM - Campo Mourão">11º BPM - Campo Mourão</option>
-              <option value="12º BPM - Curitiba">12º BPM - Curitiba</option>
-              <option value="13º BPM - Curitiba">13º BPM - Curitiba</option>
-              <option value="14º BPM - Foz do Iguaçu">14º BPM - Foz do Iguaçu</option>
-              <option value="15º BPM - Rolândia">15º BPM - Rolândia</option>
-              <option value="16º BPM - Guarapuava">16º BPM - Guarapuava</option>
-              <option value="17º BPM - São José dos Pinhais">17º BPM - São José dos Pinhais</option>
-              <option value="18º BPM - Cornélio Procópio">18º BPM - Cornélio Procópio</option>
-              <option value="19º BPM - Toledo">19º BPM - Toledo</option>
-              <option value="20º BPM - Curitiba">20º BPM - Curitiba</option>
-              <option value="21º BPM - Francisco Beltrão">21º BPM - Francisco Beltrão</option>
-              <option value="22º BPM - Colombo">22º BPM - Colombo</option>
-              <option value="23º BPM - Curitiba">23º BPM - Curitiba</option>
-              <option value="25º BPM - Umuarama">25º BPM - Umuarama</option>
-              <option value="26º BPM - Telêmaco Borba">26º BPM - Telêmaco Borba</option>
-              <option value="27º BPM - União da Vitória">27º BPM - União da Vitória</option>
-              <option value="28º BPM - Lapa">28º BPM - Lapa</option>
-              <option value="29º BPM - Piraquara">29º BPM - Piraquara</option>
-              <option value="30º BPM - Londrina">30º BPM - Londrina</option>
-              <option value="31º BPM - Assis Chateaubriand">31º BPM - Assis Chateaubriand</option>
-              <option value="32º BPM - Sarandi">32º BPM - Sarandi</option>
-              <option value="33º BPM - Curitiba">33º BPM - Curitiba</option>
-              <option value="34º BPM - Almirante Tamandaré">34º BPM - Almirante Tamandaré</option>
-            </optgroup>
-
-            <optgroup label="Companhias Independentes (CIPM)">
-              <option value="3ª CIPM - Loanda">3ª CIPM - Loanda</option>
-              <option value="5ª CIPM - Cianorte">5ª CIPM - Cianorte</option>
-              <option value="6ª CIPM - Ivaiporã">6ª CIPM - Ivaiporã</option>
-              <option value="7ª CIPM - Arapongas">7ª CIPM - Arapongas</option>
-              <option value="8ª CIPM - Irati">8ª CIPM - Irati</option>
-              <option value="9ª CIPM - Colorado">9ª CIPM - Colorado</option>
-              <option value="10ª CIPM - Laranjeiras do Sul">10ª CIPM - Laranjeiras do Sul</option>
-              <option value="11ª CIPM - Cambé">11ª CIPM - Cambé</option>
-              <option value="12ª CIPM - Palmas">12ª CIPM - Palmas</option>
-            </optgroup>
-
-            <optgroup label="Batalhões Especializados">
-              <option value="BOPE - Piraquara">BOPE - Piraquara</option>
-              <option value="BPAmb - São José dos Pinhais">BPAmb - São José dos Pinhais</option>
-              <option value="BPChoque - Curitiba">BPChoque - Curitiba</option>
-              <option value="BPEC - Curitiba">BPEC - Curitiba</option>
-              <option value="BPFron - Marechal Cândido Rondon">BPFron - Marechal Cândido Rondon</option>
-              <option value="BPRONE - Curitiba">BPRONE - Curitiba</option>
-              <option value="BPRv - Curitiba">BPRv - Curitiba</option>
-              <option value="BPTran - Curitiba">BPTran - Curitiba</option>
-              <option value="RPMon - Curitiba">RPMon - Curitiba</option>
-            </optgroup>
+            <?= renderOpcoes(LISTA_UNIDADES, $old['unidade'], 'Selecione a Unidade...') ?>
           </select>
         </div>
       </div>
@@ -281,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <label for="telefone">Telefone / Whatsapp</label>
         <div class="input-wrapper">
           <i class="fa-solid fa-phone input-icon"></i>
-          <input type="text" id="telefone" name="telefone" placeholder="(41) 99999-9999" maxlength="15" oninput="mascaraTelefone(this)" required>
+          <input type="text" id="telefone" name="telefone" placeholder="(41) 99999-9999" maxlength="15" oninput="mascaraTelefone(this)" value="<?= e($old['telefone']) ?>" required>
         </div>
       </div>
 
@@ -291,17 +184,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <label for="usuario">Usuário</label>
           <div class="input-wrapper">
             <i class="fa-regular fa-user input-icon"></i>
-            <input type="text" id="usuario" name="usuario" placeholder="joao.silva" required>
+            <input type="text" id="usuario" name="usuario" placeholder="joao.silva" pattern="[A-Za-z0-9._\-]{3,50}" autocomplete="username" value="<?= e($old['usuario']) ?>" required>
           </div>
         </div>
         <div class="input-group" style="flex: 1;">
           <label for="senha">Senha</label>
           <div class="input-wrapper">
             <i class="fa-solid fa-lock input-icon"></i>
-            <input type="password" id="senha" name="senha" placeholder="••••••••" required>
+            <input type="password" id="senha" name="senha" placeholder="mín. 6 caracteres" minlength="6" autocomplete="new-password" required>
           </div>
         </div>
       </div>
+
+      <!-- Consentimento LGPD -->
+      <label style="display:flex; gap:8px; align-items:flex-start; font-size:12.5px; color:#334155; cursor:pointer; margin-top:6px; line-height:1.5;">
+        <input type="checkbox" name="aceite_termo" value="sim" required style="margin-top:3px;" <?= ($_POST['aceite_termo'] ?? '') === 'sim' ? 'checked' : '' ?>>
+        <span>Li e concordo com a <a href="politica_privacidade.php" target="_blank">Política de Privacidade e o Termo de Consentimento</a> e autorizo o tratamento dos meus dados pessoais nos termos da LGPD (Lei nº 13.709/2018).</span>
+      </label>
 
       <button type="submit" class="btn-login" style="margin-top: 10px;">
         <span>Enviar Solicitação</span>
@@ -317,18 +216,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <script>
     // Máscara para CPF: 000.000.000-00
     function mascaraCPF(i) {
-      let v = i.value.replace(/\D/g, "");
+      let v = i.value.replace(/\D/g, "").slice(0, 11);
       v = v.replace(/(\d{3})(\d)/, "$1.$2");
       v = v.replace(/(\d{3})(\d)/, "$1.$2");
       v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
       i.value = v;
     }
 
-    // Máscara para Telefone: (00) 00000-0000
+    // Máscara para Telefone: (00) 00000-0000 ou (00) 0000-0000
     function mascaraTelefone(i) {
-      let v = i.value.replace(/\D/g, "");
-      v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
-      v = v.replace(/(\d{5})(\d)/, "$1-$2");
+      let v = i.value.replace(/\D/g, "").slice(0, 11);
+      v = v.replace(/^(\d{2})(\d)/, "($1) $2");
+      v = v.replace(/(\d)(\d{4})$/, "$1-$2");
       i.value = v;
     }
   </script>
