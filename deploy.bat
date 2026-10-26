@@ -61,7 +61,8 @@ findstr /c:"COLOQUE_A_SENHA_AQUI" "%CREDENCIAIS%" >nul && (
 )
 
 :pular_credenciais
-set "CURL_FTP="%CURL%" --ssl-reqd --netrc-file "%CREDENCIAIS%" --silent --show-error --connect-timeout 20"
+rem --retry: o servidor gratuito recusa conexoes em excesso (erro 451/timeout); tenta de novo
+set "CURL_FTP="%CURL%" --ssl-reqd --netrc-file "%CREDENCIAIS%" --silent --show-error --connect-timeout 20 --max-time 180 --retry 5 --retry-delay 4 --retry-all-errors"
 
 if /i "%MODO%"=="testar" (
     echo Conectando em %FTP_HOST%%FTP_DIR% ...
@@ -125,8 +126,13 @@ for /f "usebackq delims=" %%F in ("%LISTA_ENVIO%") do (
                 echo   [FALHA] %%F ^(nao foi possivel ler do Git^)
                 set /a FALHAS+=1
             ) else (
-                %CURL_FTP% --ftp-create-dirs -T "!TEMPFILE!" "ftp://%FTP_HOST%%FTP_DIR%/%%F"
-                if errorlevel 1 (
+                rem Sobe com nome temporario e so depois troca pelo definitivo:
+                rem se o envio falhar, o arquivo atual do servidor continua intacto
+                %CURL_FTP% --ftp-create-dirs -T "!TEMPFILE!" "ftp://%FTP_HOST%%FTP_DIR%/%%F.deploytmp" -Q "-*DELE %FTP_DIR%/%%F" -Q "-RNFR %FTP_DIR%/%%F.deploytmp" -Q "-RNTO %FTP_DIR%/%%F"
+                set "RC=!errorlevel!"
+                rem Pausa de 1s entre arquivos para nao estourar o limite de conexoes
+                ping -n 2 127.0.0.1 >nul
+                if not "!RC!"=="0" (
                     echo   [FALHA] %%F
                     set /a FALHAS+=1
                 ) else (
