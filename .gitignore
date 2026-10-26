@@ -1,1 +1,5 @@
 config.php
+
+# Deploy: credenciais do FTP e marcador do último envio (nunca versionar)
+deploy.netrc
+.deploy_ultimo
