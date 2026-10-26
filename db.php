@@ -16,9 +16,12 @@ try {
         PDO::ATTR_EMULATE_PREPARES   => false,
     ]);
 } catch (PDOException $e) {
-    // Não expõe detalhes da conexão ao usuário final
+    // Não expõe detalhes da conexão ao usuário final; mostra só o código do MySQL
+    // (ajuda o administrador a identificar a causa sem revelar usuário ou senha):
+    // 1045 = usuário/senha incorretos | 1049 = banco não existe | 2002 = servidor (host) incorreto
     error_log('Erro de conexão com o banco: ' . $e->getMessage());
+    $codigoErro = (int) ($e->errorInfo[1] ?? 0) ?: (int) $e->getCode();
     http_response_code(500);
-    die('Erro ao conectar ao banco de dados. Tente novamente mais tarde.');
+    die('Erro ao conectar ao banco de dados. Tente novamente mais tarde. (código ' . $codigoErro . ')');
 }
 unset($host, $db, $user, $pass);
