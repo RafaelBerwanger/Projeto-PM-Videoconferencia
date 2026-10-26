@@ -21,7 +21,9 @@ try {
     // 1045 = usuário/senha incorretos | 1049 = banco não existe | 2002 = servidor (host) incorreto
     error_log('Erro de conexão com o banco: ' . $e->getMessage());
     $codigoErro = (int) ($e->errorInfo[1] ?? 0) ?: (int) $e->getCode();
+    // Indica se as credenciais vieram do config.php ou do padrão local (XAMPP)
+    $origem = defined('DB_HOST') ? 'config' : 'padrão local: config.php não encontrado ou sem DB_HOST';
     http_response_code(500);
-    die('Erro ao conectar ao banco de dados. Tente novamente mais tarde. (código ' . $codigoErro . ')');
+    die('Erro ao conectar ao banco de dados. Tente novamente mais tarde. (código ' . $codigoErro . ', ' . $origem . ')');
 }
 unset($host, $db, $user, $pass);
